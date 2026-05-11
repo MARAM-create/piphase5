@@ -1,0 +1,449 @@
+<div class="create3d-page">
+
+  <!-- TOP -->
+  <div class="create3d-top">
+    <div>
+      <h1>Créer une visite 3D</h1>
+      <p>Visites en ligne &gt; Visite 3D &gt; Création</p>
+    </div>
+
+    <button type="button" class="btn-back" routerLink="/visite-en-ligne">
+      ← Retour à la liste
+    </button>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps-card">
+    <div class="step" [class.active]="etapeActuelle === 1" [class.done]="etapeActuelle > 1">
+      <span>1</span>
+      <div>
+        <strong>Ajouter des pièces</strong>
+        <p>Importez vos photos 360°</p>
+      </div>
+    </div>
+
+    <div class="step" [class.active]="etapeActuelle === 2" [class.done]="etapeActuelle > 2">
+      <span>2</span>
+      <div>
+        <strong>Organiser</strong>
+        <p>Organisez l’ordre des pièces</p>
+      </div>
+    </div>
+
+    <div class="step" [class.active]="etapeActuelle === 3">
+      <span>3</span>
+      <div>
+        <strong>Lier les pièces</strong>
+        <p>Créez les points de navigation</p>
+      </div>
+    </div>
+
+    <div class="step" [class.active]="etapeActuelle === 4">
+      <span>4</span>
+      <div>
+        <strong>Prévisualiser</strong>
+        <p>Vérifiez votre visite 3D</p>
+      </div>
+    </div>
+
+    <div class="step" [class.active]="etapeActuelle === 5">
+      <span>5</span>
+      <div>
+        <strong>Publier</strong>
+        <p>Rendez la visite disponible</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFO VISITE -->
+  <div class="visit-summary">
+    <img
+      [src]="visite?.photoAnnonce || 'assets/images/logement-placeholder.png'"
+      alt="Appartement" />
+
+    <div>
+      <h2>{{ visite?.titreAnnonce || 'Appartement sélectionné' }}</h2>
+      <p>
+        Demande #{{ visite?.demandeId || '—' }}
+        · Étudiant : {{ visite?.nomEtudiant || '—' }}
+        · {{ visite?.dateVisite || visite?.createdAt || 'Date non définie' }}
+      </p>
+    </div>
+  </div>
+
+  <div class="create3d-layout" *ngIf="etapeActuelle <= 3">
+    <!-- LEFT -->
+    <section class="panel-card">
+
+      <!-- ETAPE 1 : AJOUTER -->
+      <ng-container *ngIf="etapeActuelle === 1">
+
+        <h2>1. Ajouter des pièces (photos 360°)</h2>
+        <p class="panel-subtitle">
+          Ajoutez des photos panoramiques 360° de chaque pièce de votre bien.
+        </p>
+
+        <label class="upload-zone">
+          <input type="file" accept="image/*" (change)="ajouterScene($event)" />
+          <div class="upload-icon">☁</div>
+          <strong>Ajouter une photo 360°</strong>
+          <p>Glissez-déposez ou cliquez pour importer</p>
+          <small>Formats acceptés : JPG, PNG</small>
+        </label>
+
+        <div class="capture-help">
+          <strong>Conseil capture 360°</strong>
+          <p>
+            Pour un meilleur rendu, utilisez une vraie photo 360° au format panoramique.
+            Sur Android, vous pouvez tester <b>360 Photo Sphere Camera</b>.
+            Sur iPhone, une alternative simple est <b>360 Photo Cam</b>.
+          </p>
+        </div>
+
+        <div class="scenes-title" *ngIf="scenes.length > 0">
+          Pièces ajoutées ({{ scenes.length }})
+        </div>
+
+        <div class="scenes-grid" *ngIf="scenes.length > 0">
+
+          <div
+            class="room-card"
+            *ngFor="let scene of scenes"
+            [class.active]="sceneSelectionneeId === scene.id">
+
+            <div class="room-image-wrap">
+              <img [src]="scene.preview" alt="Photo 360" />
+              <span class="room-check" *ngIf="sceneSelectionneeId === scene.id">✓</span>
+            </div>
+
+            <input
+              type="text"
+              [(ngModel)]="scene.titre"
+              (ngModelChange)="majPreview3D()"
+              placeholder="Nom de la pièce" />
+
+            <div class="room-actions">
+              <button type="button" (click)="voirScene3D(scene)">
+                Voir en 3D
+              </button>
+
+              <button type="button" class="danger" (click)="supprimerScene(scene.id)">
+                Supprimer
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+        <button
+          type="button"
+          class="btn-next"
+          [disabled]="scenes.length === 0"
+          (click)="allerOrganiser()">
+          Suivant : Organiser les pièces →
+        </button>
+
+      </ng-container>
+
+
+      <!-- ETAPE 2 : ORGANISER -->
+      <ng-container *ngIf="etapeActuelle === 2">
+
+        <h2>2. Organiser les pièces</h2>
+        <p class="panel-subtitle">
+          Définissez l’ordre de navigation des pièces dans la visite 3D.
+          La première pièce sera affichée au démarrage.
+        </p>
+
+        <div class="organize-list">
+
+          <div
+            class="organize-row"
+            *ngFor="let scene of scenes; let i = index"
+            [class.active]="sceneSelectionneeId === scene.id"
+            (click)="selectionnerScene(scene)">
+
+            <div class="organize-rank">
+              {{ i + 1 }}
+            </div>
+
+            <img [src]="scene.preview" alt="Photo pièce" />
+
+            <div class="organize-info">
+              <strong>{{ scene.titre || 'Nouvelle pièce' }}</strong>
+              <span>{{ i === 0 ? 'Pièce de départ' : 'Pièce #' + (i + 1) }}</span>
+            </div>
+
+            <div class="organize-actions">
+              <button
+                type="button"
+                [disabled]="i === 0"
+                (click)="monterScene(i); $event.stopPropagation()">
+                ↑
+              </button>
+
+              <button
+                type="button"
+                [disabled]="i === scenes.length - 1"
+                (click)="descendreScene(i); $event.stopPropagation()">
+                ↓
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="step-actions">
+          <button type="button" class="btn-secondary" (click)="retourAjouterPieces()">
+            ← Retour
+          </button>
+
+          <button
+            type="button"
+            class="btn-next"
+            (click)="allerLierPieces()">
+            Suivant : Prévisualiser →
+          </button>
+        </div>
+
+      </ng-container>
+
+
+      <!-- ETAPE 3 : LIER LES PIECES -->
+      <ng-container *ngIf="etapeActuelle === 3">
+
+        <h2>3. Lier les pièces</h2>
+        <p class="panel-subtitle">
+          Créez des points de navigation pour permettre à l’étudiant de passer d’une pièce à une autre.
+        </p>
+
+        <div class="link-form">
+
+          <div class="link-field">
+            <label>Pièce de départ</label>
+            <select [(ngModel)]="sceneDepartId" (ngModelChange)="selectionnerSceneDepart()">
+              <option *ngFor="let scene of scenes" [ngValue]="scene.id">
+                {{ scene.titre || 'Nouvelle pièce' }}
+              </option>
+            </select>
+          </div>
+
+          <div class="link-arrow">
+            →
+          </div>
+
+          <div class="link-field">
+            <label>Pièce cible</label>
+            <select [(ngModel)]="sceneCibleId">
+              <option *ngFor="let scene of scenes" [ngValue]="scene.id">
+                {{ scene.titre || 'Nouvelle pièce' }}
+              </option>
+            </select>
+          </div>
+
+          <div class="link-position">
+            <div class="link-field small">
+              <label>Horizontal</label>
+              <input type="number" [(ngModel)]="yawLien" />
+            </div>
+
+            <div class="link-field small">
+              <label>Vertical</label>
+              <input type="number" [(ngModel)]="pitchLien" />
+            </div>
+          </div>
+
+          <button type="button" class="btn-add-link" (click)="ajouterLien()">
+            Ajouter le lien
+          </button>
+
+        </div>
+
+        <div class="link-help">
+          <strong>Conseil</strong>
+          <p>
+            Le lien sera visible comme un point cliquable dans la visite 360°.
+            Pour le test, gardez Horizontal = 30 et Vertical = 0.
+          </p>
+        </div>
+
+        <div class="links-title" *ngIf="liens3D.length > 0">
+          Liens créés ({{ liens3D.length }})
+        </div>
+
+        <div class="links-list" *ngIf="liens3D.length > 0">
+
+          <div class="link-row" *ngFor="let lien of liens3D">
+
+            <div class="link-route">
+              <strong>{{ getSceneTitre(lien.sourceId) }}</strong>
+              <span>→</span>
+              <strong>{{ getSceneTitre(lien.targetId) }}</strong>
+            </div>
+
+            <div class="link-coords">
+              yaw {{ lien.yaw }} · pitch {{ lien.pitch }}
+            </div>
+
+            <button type="button" class="btn-link-delete" (click)="supprimerLien(lien.id)">
+              Supprimer
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="links-empty" *ngIf="liens3D.length === 0">
+          Aucun lien créé pour le moment.
+        </div>
+
+        <div class="step-actions">
+          <button type="button" class="btn-secondary" (click)="retourOrganiser()">
+            ← Retour
+          </button>
+
+          <button
+            type="button"
+            class="btn-next"
+            (click)="allerPrevisualiser()">
+            Suivant : Prévisualiser →
+          </button>
+        </div>
+
+      </ng-container>
+
+
+
+    </section>
+    <!-- RIGHT -->
+    <section class="panel-card preview-card">
+
+      <div class="preview-header">
+        <div>
+          <h2>Aperçu de la visite 3D</h2>
+          <p>Cliquez sur les points pour naviguer entre les pièces.</p>
+        </div>
+
+        <button type="button" class="btn-fullscreen">
+          ⛶ Plein écran
+        </button>
+      </div>
+
+      <div class="preview-box" #previewBlock *ngIf="scenes.length > 0">
+        <app-visite360
+          [scenes]="scenes360Preview"
+          [titrePropriete]="'Prévisualisation'">
+        </app-visite360>
+      </div>
+
+      <div class="empty-preview" *ngIf="scenes.length === 0">
+        <h3>Aucune pièce ajoutée</h3>
+        <p>Ajoutez une photo pour commencer la visite 3D.</p>
+      </div>
+
+      <div class="preview-footer" *ngIf="scenes.length > 0">
+        <strong>{{ scenes.length > 0 ? (scenes[0].titre || 'Pièce') : '' }}</strong>
+        <span>{{ scenes.length > 0 ? '1 / ' + scenes.length : '' }}</span>
+      </div>
+
+      <div class="tip-box">
+        <strong>Conseil</strong>
+        <p>
+          Pour une meilleure expérience, assurez-vous que vos photos 360° sont lumineuses,
+          nettes et prises depuis le centre de la pièce.
+        </p>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- ETAPE 4 : PREVISUALISER -->
+  <!-- ETAPE 4 : PREVISUALISER -->
+  <ng-container *ngIf="etapeActuelle === 4">
+
+    <div class="step4-page simple">
+
+      <div class="step4-header">
+        <h2>4. Prévisualiser la visite 3D</h2>
+        <p>Vérifiez le rendu de votre visite 3D avant la publication.</p>
+      </div>
+
+      <div class="step4-viewer-card simple">
+
+        <div class="step4-viewer-header">
+          <div>
+            <h3>Aperçu de la visite 3D</h3>
+            <p>Testez la navigation entre les pièces.</p>
+          </div>
+        </div>
+
+        <div class="step4-viewer-box" #previewBlock>
+          <app-visite360
+            [scenes]="scenes360Preview"
+            [titrePropriete]="'Prévisualisation'">
+          </app-visite360>
+        </div>
+
+      </div>
+
+      <div class="step4-actions simple">
+
+        <button type="button" class="btn-secondary" (click)="retourLierPieces()">
+          ← Retour modifier
+        </button>
+        <button type="button" class="btn-next" (click)="allerPublier()">
+          Suivant : Publier →
+        </button>
+      </div>
+
+    </div>
+
+  </ng-container>
+
+  <!-- ETAPE 5 : PUBLIER -->
+  <ng-container *ngIf="etapeActuelle === 5">
+
+    <div class="step5-page">
+
+      <h2>5. Publier la visite 3D</h2>
+      <p class="panel-subtitle">
+        Une fois publiée, la visite pourra être consultée par l’étudiant concerné.
+      </p>
+
+      <div class="publish-summary-card">
+        <div class="publish-icon">✓</div>
+
+        <div>
+          <strong>Votre visite 3D est prête</strong>
+          <p>
+            {{ scenes.length }} pièce(s) ajoutée(s) · {{ liens3D.length }} lien(s) de navigation configuré(s)
+          </p>
+        </div>
+      </div>
+
+      <div class="publish-info-box">
+        <strong>Important</strong>
+        <p>
+          Pour le moment, le bouton de publication prépare seulement la visite côté interface.
+          La sauvegarde réelle en base sera ajoutée ensuite avec le backend.
+        </p>
+      </div>
+
+      <div class="step-actions">
+        <button type="button" class="btn-secondary" (click)="retourPrevisualiser()">
+          ← Retour
+        </button>
+
+        <button type="button" class="btn-publish-final" (click)="publierVisite3D()">
+          Publier la visite 3D
+        </button>
+      </div>
+
+    </div>
+
+  </ng-container>
+
+</div>

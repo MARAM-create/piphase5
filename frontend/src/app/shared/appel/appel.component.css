@@ -1,0 +1,304 @@
+.appel-container {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+/* ── Overlay (entrant + sortant) ─────────────────────────────── */
+.appel-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+  z-index: 10000;
+}
+
+/* ── Carte appel entrant ─────────────────────────────────────── */
+.appel-entrant-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  min-width: 300px;
+}
+
+.appel-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+}
+
+.appel-entrant-card h3 { margin: 0 0 0.3rem; color: #1a202c; }
+.appel-entrant-card p  { color: #718096; margin-bottom: 1.5rem; }
+
+.appel-entrant-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.btn-refuser-appel {
+  background: #fee2e2;
+  color: #991b1b;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.btn-accepter-appel {
+  background: #d1fae5;
+  color: #065f46;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.btn-refuser-appel:hover,
+.btn-accepter-appel:hover { opacity: 0.8; }
+
+/* ── Carte appel sortant ─────────────────────────────────────── */
+.appel-sortant-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  min-width: 280px;
+}
+
+.pulse-ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 4px solid #4f46e5;
+  margin: 0 auto 1rem;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%   { transform: scale(1);   opacity: 1;   }
+  50%  { transform: scale(1.2); opacity: 0.5; }
+  100% { transform: scale(1);   opacity: 1;   }
+}
+
+.appel-vers {
+  color: #718096;
+  font-size: 0.85rem;
+  margin-bottom: 1.5rem;
+}
+
+.btn-terminer-appel {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.7rem 2rem;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+/* ── Appel en cours plein écran ──────────────────────────────── */
+.appel-en-cours {
+  position: fixed;
+  inset: 0;
+  background: #1a202c;
+  display: flex;
+  flex-direction: column;
+  pointer-events: all;
+  z-index: 9999;
+}
+
+.appel-toolbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1.5rem;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.minuterie-top {
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.btn-minimiser {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-minimiser:hover { background: rgba(255, 255, 255, 0.25); }
+
+.videos-container {
+  position: relative;
+  width: 100%;
+  flex: 1;
+}
+
+.video-remote {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #2d3748;
+}
+
+.video-local {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  width: 160px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Contrôles ───────────────────────────────────────────────── */
+.appel-controles {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  padding: 1.5rem 2rem;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.btn-controle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  font-size: 1.4rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.btn-controle:hover { background: rgba(255, 255, 255, 0.25); }
+.btn-controle.actif { background: rgba(239, 68, 68, 0.5);    }
+
+.btn-terminer-appel-cours {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: none;
+  background: #ef4444;
+  color: white;
+  font-size: 2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.7);
+  transition: transform 0.15s, background 0.2s;
+  transform: rotate(135deg);
+}
+
+.btn-terminer-appel-cours:hover {
+  background: #dc2626;
+  transform: rotate(135deg) scale(1.1);
+}
+
+/* ── Widget flottant ─────────────────────────────────────────── */
+.appel-flottant {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 220px;
+  background: #1e293b;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  pointer-events: all;
+  border: 2px solid rgba(34, 197, 94, 0.6);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.appel-flottant:hover {
+  transform: scale(1.04);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+}
+
+.video-flottante {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  background: #0f172a;
+}
+
+.flottant-info {
+  padding: 0.6rem 0.8rem 0.3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.flottant-minuterie {
+  color: #22c55e;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.flottant-label {
+  color: #94a3b8;
+  font-size: 0.72rem;
+}
+
+.btn-raccrocher-flottant {
+  margin: 0.4rem 0.8rem 0.8rem;
+  padding: 0.5rem;
+  background: #ef4444;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transform: rotate(135deg);
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-raccrocher-flottant:hover { background: #dc2626; }

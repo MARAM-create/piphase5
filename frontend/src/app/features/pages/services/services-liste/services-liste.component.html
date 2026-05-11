@@ -1,0 +1,376 @@
+<div class="services-page">
+
+  <!-- HERO SERVICES -->
+  <section class="services-hero">
+    <div class="services-hero-left">
+      <div class="services-hero-text">
+        <span class="services-hero-badge">PRESTATAIRES VÉRIFIÉS</span>
+
+        <h1>Services disponibles</h1>
+
+        <p>
+          Trouvez le prestataire qu’il vous faut, facilement et en toute confiance.<br>
+          Comparez les profils, les compétences et les disponibilités en quelques clics.
+        </p>
+      </div>
+    </div>
+
+    <a routerLink="/services/mes-demandes" class="btn-mes-demandes hero-demandes">
+      📋 Mes demandes
+    </a>
+  </section>
+
+  <div class="services-shell">
+
+    <aside class="sidebar">
+      <div class="sidebar-card">
+        <h2>Catégories</h2>
+
+        <label
+          *ngFor="let cat of categoriesServices"
+          class="category-item"
+          [class.active]="filtreSpecialite === cat.value"
+        >
+          <input
+            type="radio"
+            name="specialite"
+            [value]="cat.value"
+            [(ngModel)]="filtreSpecialite"
+            (change)="choisirCategorie(cat.value)"
+          />
+          <span class="cat-icon">{{ cat.icon }}</span>
+          <span>{{ cat.label }}</span>
+        </label>
+      </div>
+
+      <div class="trust-card">
+        <div class="trust-icon">✓</div>
+        <h3>Prestataires vérifiés</h3>
+        <p>
+          Profils soigneusement publiés pour une expérience plus fiable et plus claire.
+        </p>
+      </div>
+    </aside>
+
+    <main class="content-area">
+
+      <div class="search-row">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input
+            type="text"
+            [(ngModel)]="recherche"
+            (input)="onRechercheChange()"
+            placeholder="Rechercher un service, un prestataire, une compétence..."
+          />
+        </div>
+
+        <div class="location-box">
+          <span class="search-icon">⌖</span>
+          <input
+            type="text"
+            [(ngModel)]="filtreVille"
+            (input)="onVilleChange()"
+            placeholder="Ville ou quartier"
+          />
+        </div>
+
+        <button class="btn-search" type="button" (click)="appliquerFiltre()">
+          ⌕ Rechercher
+        </button>
+      </div>
+
+      <div class="results-toolbar">
+        <div class="results-count">
+          {{ prestatairesFiltres.length }} prestataire(s) trouvé(s)
+        </div>
+
+        <div class="sort-box">
+          <label for="tri">Trier par :</label>
+          <select id="tri" [(ngModel)]="triSelectionne" (change)="onTriChange()">
+            <option value="EXPERIENCE">Expérience</option>
+            <option value="TARIF_ASC">Tarif croissant</option>
+            <option value="TARIF_DESC">Tarif décroissant</option>
+            <option value="NOM">Nom</option>
+          </select>
+        </div>
+      </div>
+
+      <div *ngIf="chargement" class="state-box">Chargement...</div>
+      <div *ngIf="erreur" class="state-box error">{{ erreur }}</div>
+      <div *ngIf="!chargement && prestatairesFiltres.length === 0" class="state-box">
+        Aucun prestataire disponible.
+      </div>
+
+      <div class="cards-grid" *ngIf="!chargement && prestatairesFiltres.length > 0">
+        <article *ngFor="let p of prestatairesFiltres" class="service-card">
+          <div class="service-card-header">
+            <span class="service-tag">{{ getSpecialiteLabel(p) }}</span>
+          </div>
+
+          <div class="service-profile">
+            <div class="profile-avatar">
+              <img *ngIf="p.photoProfil" [src]="getPhoto(p.photoProfil)" [alt]="p.prenom" />
+              <div *ngIf="!p.photoProfil" class="avatar-fallback">
+                {{ getInitiales(p) }}
+              </div>
+            </div>
+
+            <div class="profile-main">
+              <h3>{{ p.prenom }} {{ p.nom }}</h3>
+
+              <div class="profile-meta">
+                <span *ngIf="p.ville">📍 {{ p.ville }}</span>
+                <span *ngIf="p.experienceAnnees">⭐ {{ p.experienceAnnees }} ans d’expérience</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="service-infos">
+            <div class="info-pill" *ngIf="p.tarifHoraire">💰 {{ p.tarifHoraire }} DT / h</div>
+            <div class="info-pill">🕒 {{ getDisponibiliteLabel(p.disponibilite) }}</div>
+          </div>
+
+          <div class="service-details">
+            <div *ngIf="p.telephone">📞 {{ p.telephone }}</div>
+            <div *ngIf="p.email">✉️ {{ p.email }}</div>
+            <div *ngIf="p.certifications">🏆 {{ p.certifications }}</div>
+          </div>
+
+          <div class="service-actions">
+            <ng-container *ngIf="estMonProfil(p)">
+              <a routerLink="/services/prestataire" class="btn-ghost btn-full">
+                Voir les demandes reçues
+              </a>
+            </ng-container>
+
+            <ng-container *ngIf="!estMonProfil(p)">
+              <div class="action-row">
+                <button (click)="appeler(p)" class="btn-ghost" [disabled]="statutAppel !== 'INACTIF'">
+                  Contacter
+                </button>
+
+                <button (click)="ouvrirModal(p)" class="btn-primary">
+                  Demander ce service
+                </button>
+              </div>
+
+              <button (click)="ouvrirCalendrier(p)" class="btn-outline btn-full">
+                📅 Voir disponibilités
+              </button>
+            </ng-container>
+          </div>
+        </article>
+      </div>
+
+      <div class="bottom-trust">
+        <div class="trust-item">
+          <div class="trust-item-icon">🛡</div>
+          <div>
+            <strong>Sécurité garantie</strong>
+            <p>Prestataires vérifiés et évalués.</p>
+          </div>
+        </div>
+
+        <div class="trust-item">
+          <div class="trust-item-icon">👍</div>
+          <div>
+            <strong>Avis authentiques</strong>
+            <p>Des profils plus fiables et plus lisibles.</p>
+          </div>
+        </div>
+
+        <div class="trust-item">
+          <div class="trust-item-icon">🕘</div>
+          <div>
+            <strong>Disponibilités visibles</strong>
+            <p>Consultez rapidement les créneaux existants.</p>
+          </div>
+        </div>
+
+        <div class="trust-item">
+          <div class="trust-item-icon">🎧</div>
+          <div>
+            <strong>Support clair</strong>
+            <p>Une interface simple et professionnelle.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODAL DEMANDE -->
+<div class="modal-overlay" *ngIf="modalOuvert" (click)="fermerModal()">
+  <div class="request-modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <h2>Demander un service</h2>
+        <p>Renseignez les détails de votre besoin.</p>
+      </div>
+      <button class="btn-close" (click)="fermerModal()">✕</button>
+    </div>
+
+    <div class="provider-summary" *ngIf="prestataireSelectionne">
+      <div class="provider-left">
+        <div class="provider-avatar">
+          <img
+            *ngIf="prestataireSelectionne.photoProfil"
+            [src]="getPhoto(prestataireSelectionne.photoProfil)"
+            [alt]="prestataireSelectionne.prenom"
+          />
+          <div *ngIf="!prestataireSelectionne.photoProfil" class="provider-fallback">
+            {{ getInitiales(prestataireSelectionne) }}
+          </div>
+        </div>
+
+        <div>
+          <h3>{{ prestataireSelectionne.prenom }} {{ prestataireSelectionne.nom }}</h3>
+          <span class="service-badge">{{ prestataireSelectionne.specialite }}</span>
+        </div>
+      </div>
+
+      <div class="provider-contact" *ngIf="prestataireSelectionne.telephone">
+        📞 {{ prestataireSelectionne.telephone }}
+      </div>
+    </div>
+
+    <div *ngIf="succesEnvoi" class="alert success">Demande envoyée avec succès.</div>
+    <div *ngIf="erreurEnvoi" class="alert error">{{ erreurEnvoi }}</div>
+
+    <form [formGroup]="form" (ngSubmit)="envoyer()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date *</label>
+          <input formControlName="dateService" type="date" [min]="today" />
+          <small *ngIf="f['dateService'].touched && f['dateService'].errors?.['required']">Date requise</small>
+        </div>
+
+        <div class="form-group">
+          <label>Heure *</label>
+          <input formControlName="heureService" type="time" />
+          <small *ngIf="f['heureService'].touched && f['heureService'].errors?.['required']">Heure requise</small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Adresse</label>
+        <input formControlName="adresse" type="text" placeholder="Adresse de l’intervention" />
+      </div>
+
+      <div class="form-group">
+        <label>Ville</label>
+        <input formControlName="ville" type="text" placeholder="Ville de l’intervention" />
+      </div>
+
+      <div class="form-group">
+        <label>Description du besoin *</label>
+        <textarea
+          formControlName="probleme"
+          rows="5"
+          maxlength="500"
+          placeholder="Décrivez clairement votre demande..."
+        ></textarea>
+        <small *ngIf="f['probleme'].touched && f['probleme'].errors?.['required']">
+          Description requise
+        </small>
+      </div>
+
+      <div class="form-helper">
+        Plus votre demande est précise, plus la réponse sera pertinente.
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" (click)="fermerModal()">Annuler</button>
+        <button type="submit" class="btn-submit" [disabled]="envoi">
+          {{ envoi ? 'Envoi...' : 'Envoyer ma demande' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL CALENDRIER -->
+<div class="modal-overlay" *ngIf="calendrierOuvert" (click)="fermerCalendrier()">
+  <div class="calendar-modal" (click)="$event.stopPropagation()">
+    <div class="modal-head">
+      <div>
+        <h2>Disponibilités de {{ prestataireCalendrier?.prenom }} {{ prestataireCalendrier?.nom }}</h2>
+        <p>Consultez les créneaux déjà occupés avant d’envoyer votre demande.</p>
+      </div>
+      <button class="btn-close" (click)="fermerCalendrier()">✕</button>
+    </div>
+
+    <div class="calendar-legend">
+      <span><i class="dot free"></i> Libre</span>
+      <span><i class="dot wait"></i> En attente</span>
+      <span><i class="dot busy"></i> Occupé</span>
+    </div>
+
+    <div *ngIf="chargementCalendrier" class="state-box">Chargement...</div>
+
+    <ng-container *ngIf="!chargementCalendrier">
+      <div class="calendar-nav">
+        <button (click)="moisPrecedent()" class="nav-btn">‹</button>
+        <h3>{{ titreCalendrier }}</h3>
+        <button (click)="moisSuivant()" class="nav-btn">›</button>
+      </div>
+
+      <div class="calendar-grid">
+        <div *ngFor="let nom of joursNoms" class="day-name">{{ nom }}</div>
+
+        <div
+          *ngFor="let jour of joursCalendrier"
+          class="day-cell"
+          [class.other-month]="!jour.estMoisActuel"
+          [class.today]="estAujourdhui(jour.date)"
+          [class.selected]="jourSelectionne === jour"
+          [class.busy-day]="jour.statut !== 'LIBRE' && jour.estMoisActuel"
+          (click)="selectionnerJour(jour)"
+        >
+          <span class="day-number">{{ jour.jourMois }}</span>
+
+          <div class="day-markers" *ngIf="jour.estMoisActuel">
+            <span *ngIf="jour.statut === 'EN_ATTENTE'" class="marker wait"></span>
+            <span *ngIf="jour.statut === 'ACCEPTEE'" class="marker busy"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="day-details" *ngIf="jourSelectionne">
+        <div class="day-details-head">
+          <h4>
+            {{ jourSelectionne.date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) }}
+          </h4>
+          <p>Sélectionnez cette date pour lancer votre demande.</p>
+        </div>
+
+        <div *ngIf="getDisposDuJour(jourSelectionne.date).length === 0" class="day-free-box">
+          <strong>Ce jour est libre</strong>
+          <p>Vous pouvez envoyer votre demande pour cette date.</p>
+        </div>
+
+        <div *ngIf="getDisposDuJour(jourSelectionne.date).length > 0" class="slot-list">
+          <div
+            *ngFor="let d of getDisposDuJour(jourSelectionne.date)"
+            class="slot-row"
+            [ngClass]="d.statut.toLowerCase()"
+          >
+            <span>🕒 {{ d.heureService }}</span>
+            <span class="slot-status" [ngClass]="d.statut.toLowerCase()">
+              {{ d.statut === 'EN_ATTENTE' ? 'En attente' : 'Créneau occupé' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="day-warning" *ngIf="jourSelectionne.statut !== 'LIBRE'">
+          Cette date contient déjà des créneaux. Vous pouvez quand même demander un autre horaire.
+        </div>
+
+        <button class="btn-submit full" (click)="choisirCetteDateEtDemander()">
+          Faire une demande pour ce jour
+        </button>
+      </div>
+    </ng-container>
+  </div>
+</div>

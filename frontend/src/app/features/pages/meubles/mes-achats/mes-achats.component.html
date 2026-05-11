@@ -1,0 +1,102 @@
+<div class="mes-achats-page">
+  <section class="hero-section">
+    <div class="hero-overlay"></div>
+
+    <div class="hero-shell">
+      <div class="hero-intro">
+        <span class="eyebrow">Gestion de mes achats</span>
+        <h1>Mes achats</h1>
+        <p>Consultez vos meubles achetés ainsi que les informations de transport.</p>
+      </div>
+
+      <div class="table-card">
+        <div class="toolbar">
+          <a routerLink="/meubles" class="btn-retour">← Retour aux meubles</a>
+        </div>
+
+        <div *ngIf="chargement" class="state-box">Chargement...</div>
+        <div *ngIf="erreur" class="state-box error">{{ erreur }}</div>
+
+        <div *ngIf="!chargement && achats.length === 0" class="state-box empty-box">
+          <div class="vide-icon">🛋️</div>
+          <h3>Aucun achat pour le moment</h3>
+          <p>Découvrez les meubles disponibles sur Locavia</p>
+          <a routerLink="/meubles" class="btn-explorer">Explorer les meubles</a>
+        </div>
+
+        <div class="table-wrapper" *ngIf="!chargement && !erreur && achats.length > 0">
+          <table class="table">
+            <thead>
+            <tr>
+              <th class="col-meuble">Meuble</th>
+              <th class="col-prix">Prix</th>
+              <th class="col-vendeur">Vendeur</th>
+              <th class="col-transport">Transport</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr *ngFor="let achat of achats">
+              <td class="title-cell">
+                <div class="title-wrap">
+                  <div class="thumb-wrap">
+                    <img
+                      *ngIf="achat.meuble.photos && achat.meuble.photos.length > 0; else noPhoto"
+                      [src]="getPhotoUrl(achat.meuble.photos[0])"
+                      [alt]="achat.meuble.titre"
+                      class="photo-mini"
+                    />
+                    <ng-template #noPhoto>
+                      <div class="photo-placeholder">📷</div>
+                    </ng-template>
+                  </div>
+
+                  <div class="title-meta">
+                    <strong>{{ achat.meuble.titre }}</strong>
+
+                    <div class="meta-badges">
+                      <span class="mini-badge">🪑 {{ achat.meuble.categorie }}</span>
+                      <span class="mini-badge">✨ {{ etatLabel(achat.meuble.etat) }}</span>
+                      <span class="mini-badge">📍 {{ achat.meuble.ville }}</span>
+                    </div>
+                  </div>
+                </div>
+              </td>
+
+              <td class="prix-cell">
+                {{ achat.meuble.prix }} DT
+              </td>
+
+              <td class="vendeur-cell">
+                <div class="vendeur-wrap">
+                  <strong>{{ achat.meuble.vendeurPrenom }} {{ achat.meuble.vendeurNom }}</strong>
+                  <span *ngIf="achat.meuble.vendeurTelephone">📞 {{ achat.meuble.vendeurTelephone }}</span>
+                </div>
+              </td>
+
+              <td class="transport-cell">
+                <div class="transport-wrap">
+                    <span class="badge-statut" [ngClass]="statutTransportClass(achat.demande)">
+                      🚚 {{ statutTransportLabel(achat.demande) }}
+                    </span>
+
+                  <span class="transport-extra" *ngIf="achat.demande?.statut === 'ACCEPTEE'">
+                      {{ achat.demande?.prestatairePrenom }} {{ achat.demande?.prestataireNom }}
+                    <span *ngIf="achat.demande?.prestataireTelephone">
+                        · 📞 {{ achat.demande?.prestataireTelephone }}
+                      </span>
+                    </span>
+
+                  <span class="transport-extra" *ngIf="achat.demande?.statut === 'ACCEPTEE'">
+                      📅 {{ achat.demande?.dateService }} à {{ achat.demande?.heureService }}
+                    </span>
+                </div>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

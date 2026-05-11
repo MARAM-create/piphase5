@@ -1,0 +1,52 @@
+<aside class="sidebar">
+  <h2>Meubles</h2>
+
+  <div class="filter-block">
+    <h3>Catégorie</h3>
+
+    <label *ngFor="let cat of categories" class="checkbox-row">
+      <input
+        type="radio"
+        name="categorie"
+        [value]="cat.value"
+        [(ngModel)]="selectedCategorie"
+      />
+      <span>{{ cat.label }}</span>
+    </label>
+  </div>
+
+  <div class="filter-block">
+    <h3>État</h3>
+
+    <label *ngFor="let item of etats" class="checkbox-row">
+      <input
+        type="radio"
+        name="etat"
+        [value]="item.value"
+        [(ngModel)]="selectedEtat"
+      />
+      <span>{{ item.label }}</span>
+    </label>
+  </div>
+
+  <div class="filter-block">
+    <h3>Prix</h3>
+
+    <div class="price-box">
+      <div class="price-input">
+        <label for="minPrix">Min</label>
+        <input id="minPrix" type="number" [(ngModel)]="minPrix" />
+      </div>
+
+      <div class="price-input">
+        <label for="maxPrix">Max</label>
+        <input id="maxPrix" type="number" [(ngModel)]="maxPrix" />
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="apply-btn" (click)="applyFilters()">Appliquer</button>
+    <button class="reset-btn" (click)="resetFilters()">Réinitialiser</button>
+  </div>
+</aside>

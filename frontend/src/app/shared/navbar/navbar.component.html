@@ -1,0 +1,365 @@
+<!-- ══════════ NAVBAR ══════════ -->
+<nav class="navbar" id="navbar">
+
+  <!-- Logo -->
+  <a routerLink="/" class="brand">
+    <div class="brand-logo-wrap">
+      <img src="assets/images/logo1.png" alt="Logo Locavia" class="brand-logo-icon">
+      <img src="assets/images/logo2.png" alt="Locavia" class="brand-logo-text">
+    </div>
+  </a>
+
+  <!-- Liens navigation -->
+  <div class="nav-links">
+
+    <!-- Utilisateur connecté -->
+    <ng-container *ngIf="utilisateur$ | async as utilisateur; else liensVisiteur">
+
+      <!-- PROPRIÉTAIRE :
+           Location & Colocation, Services, Visite en ligne, Meubles -->
+      <ng-container *ngIf="utilisateur.role === 'PROPRIETAIRE'">
+        <a class="nav-link" routerLink="/annonces">
+          Location &amp; Colocation
+        </a>
+
+        <a class="nav-link" routerLink="/services" [queryParams]="{ onglet: 'services' }">
+          Services
+        </a>
+
+        <a class="nav-link" routerLink="/visite-en-ligne">
+          Visite en ligne
+        </a>
+
+        <a class="nav-link" routerLink="/meubles" [queryParams]="{ onglet: 'meubles' }">
+          Meubles
+        </a>
+      </ng-container>
+
+      <!-- PRESTATAIRE :
+           Services, Meubles -->
+      <ng-container *ngIf="utilisateur.role === 'PRESTATAIRE'">
+        <a class="nav-link" routerLink="/services" [queryParams]="{ onglet: 'services' }">
+          Services
+        </a>
+
+        <a class="nav-link" routerLink="/meubles" [queryParams]="{ onglet: 'meubles' }">
+          Meubles
+        </a>
+      </ng-container>
+
+      <!-- ÉTUDIANT -->
+      <ng-container *ngIf="utilisateur.role === 'ETUDIANT'">
+        <a class="nav-link" routerLink="/annonces">
+          Location &amp; Colocation
+        </a>
+
+        <a class="nav-link" routerLink="/colocataires">
+          Trouver vos colocataires
+        </a>
+
+        <a class="nav-link" routerLink="/services" [queryParams]="{ onglet: 'services' }">
+          Services
+        </a>
+
+        <a class="nav-link" routerLink="/visite-en-ligne">
+          Visite en ligne
+        </a>
+
+        <a class="nav-link" routerLink="/meubles" [queryParams]="{ onglet: 'meubles' }">
+          Meubles
+        </a>
+      </ng-container>
+
+      <!-- Si un autre rôle existe, on affiche seulement Services et Meubles -->
+      <ng-container
+        *ngIf="
+          utilisateur.role !== 'PROPRIETAIRE'
+          && utilisateur.role !== 'PRESTATAIRE'
+          && utilisateur.role !== 'ETUDIANT'
+        "
+      >
+        <a class="nav-link" routerLink="/services" [queryParams]="{ onglet: 'services' }">
+          Services
+        </a>
+
+        <a class="nav-link" routerLink="/meubles" [queryParams]="{ onglet: 'meubles' }">
+          Meubles
+        </a>
+      </ng-container>
+
+    </ng-container>
+
+    <!-- Visiteur non connecté -->
+    <ng-template #liensVisiteur>
+      <a class="nav-link" routerLink="/annonces">
+        Location &amp; Colocation
+      </a>
+
+      <a class="nav-link" routerLink="/colocataires">
+        Trouver vos colocataires
+      </a>
+
+      <a class="nav-link" routerLink="/meubles">
+        Meubles
+      </a>
+
+      <a class="nav-link" routerLink="/services">
+        Services
+      </a>
+
+      <a class="nav-link" routerLink="/visite">
+        Visite en ligne
+      </a>
+
+      <a class="nav-link" routerLink="/guides">
+        Guides
+      </a>
+    </ng-template>
+
+    <!-- Menu Réclamation / Avis -->
+    <div class="mon-espace-container reclamation-menu-container">
+      <button
+        class="nav-link"
+        type="button"
+        style="background: none; border: none; cursor: pointer;"
+        (click)="toggleReclamation($event)"
+      >
+        Réclamation/Avis ▾
+      </button>
+
+      <div
+        class="dropdown-menu fade-down"
+        [style.display]="reclamationOuvert ? 'block' : 'none'"
+        (click)="$event.stopPropagation()"
+        style="min-width: 180px;"
+      >
+        <a routerLink="/dashboard-reclamation" class="dropdown-item" (click)="toggleReclamation()">
+          📊 Dashboard IA
+        </a>
+
+        <a routerLink="/reclamations" class="dropdown-item" (click)="toggleReclamation()">
+          📬 Réclamations
+        </a>
+
+        <a routerLink="/avis" class="dropdown-item" (click)="toggleReclamation()">
+          ⭐ Avis
+        </a>
+
+        <a routerLink="/chat" class="dropdown-item" (click)="toggleReclamation()">
+          🤖 Chat IA
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- État non connecté -->
+  <div class="nav-actions" *ngIf="!(utilisateur$ | async)">
+    <a routerLink="/connexion" class="btn-outline-sm">Connexion</a>
+    <a routerLink="/inscription" class="btn-nav-fill">S'inscrire</a>
+  </div>
+
+  <!-- État connecté -->
+  <div class="nav-actions-logged-in" *ngIf="utilisateur$ | async as utilisateur">
+
+    <!-- Mon espace (non-admin) -->
+    <div class="mon-espace-container" *ngIf="utilisateur.role !== 'ADMIN'">
+      <button class="btn-mes-demandes" type="button" (click)="toggleMonEspace($event)">
+        Mon espace
+      </button>
+
+      <div
+        class="dropdown-menu mon-espace-menu fade-down"
+        [style.display]="monEspaceOuvert ? 'block' : 'none'"
+        (click)="$event.stopPropagation()"
+      >
+
+        <!-- Masqué pour PRESTATAIRE -->
+        <a
+          *ngIf="utilisateur.role !== 'PRESTATAIRE'"
+          [routerLink]="getDashboardRoute()"
+          [queryParams]="{ onglet: 'demandes' }"
+          class="dropdown-item"
+          (click)="monEspaceOuvert = false"
+        >
+          <span>📋</span> Mes demandes
+        </a>
+
+        <!-- Masqué pour PRESTATAIRE -->
+        <a
+          *ngIf="utilisateur.role !== 'PRESTATAIRE'"
+          [routerLink]="getContratsRoute()"
+          class="dropdown-item"
+          (click)="monEspaceOuvert = false"
+        >
+          <span>📄</span> Mes contrats
+        </a>
+
+        <!-- Visible seulement pour les rôles qui ne sont ni PROPRIETAIRE ni PRESTATAIRE -->
+        <a
+          *ngIf="utilisateur.role !== 'PROPRIETAIRE' && utilisateur.role !== 'PRESTATAIRE'"
+          [routerLink]="getDashboardRoute()"
+          [queryParams]="{ onglet: 'paiements' }"
+          class="dropdown-item"
+          (click)="monEspaceOuvert = false"
+        >
+          <span>💳</span> Mes paiements
+        </a>
+
+        <!-- Visible pour tous, donc le seul élément visible pour PRESTATAIRE -->
+        <a
+          routerLink="/mes-achats"
+          class="dropdown-item"
+          (click)="monEspaceOuvert = false"
+        >
+          <span>🛒</span> Mes achats
+        </a>
+
+        <!-- Visible seulement pour PROPRIETAIRE -->
+        <a
+          *ngIf="utilisateur.role === 'PROPRIETAIRE'"
+          routerLink="/mes-annonces"
+          class="dropdown-item"
+          (click)="monEspaceOuvert = false"
+        >
+          <span>🏠</span> Mes annonces
+        </a>
+      </div>
+    </div>
+
+    <!-- Admin Panel link (admin only) -->
+    <a *ngIf="utilisateur.role === 'ADMIN'" routerLink="/tableau-de-bord/admin" class="btn-mes-demandes"
+      style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+      <span>⚙️</span> Admin Panel
+    </a>
+
+    <!-- Messagerie -->
+    <div class="messenger-navbar-wrapper">
+      <button
+        class="btn-icon messenger-btn"
+        type="button"
+        title="Messagerie"
+        (click)="toggleMiniMessenger()"
+        [class.open]="miniMessengerOuvert"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          width="22"
+          height="22"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          class="messenger-svg"
+        >
+          <path
+            d="M12 3C6.95 3 3 6.72 3 11.75C3 14.62 4.29 17.17 6.31 18.78V22L9.35 20.33C10.18 20.56 11.07 20.68 12 20.68C17.05 20.68 21 16.96 21 11.93C21 6.9 17.05 3 12 3Z"
+            fill="currentColor"
+          />
+
+          <path
+            d="M7.45 14.55L10.15 10.25L12.95 13.05L16.55 9.2L13.85 13.5L11.05 10.7L7.45 14.55Z"
+            fill="white"
+          />
+        </svg>
+
+        <span class="navbar-message-badge" *ngIf="nombreMessagesNonLus > 0">
+          {{ nombreMessagesNonLus > 99 ? '99+' : nombreMessagesNonLus }}
+        </span>
+      </button>
+    </div>
+
+    <!-- Notifications -->
+    <button
+      class="btn-icon notification-btn"
+      type="button"
+      [routerLink]="getDashboardRoute()"
+      [queryParams]="{ onglet: 'notifications' }"
+      title="Notifications"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        width="20"
+        height="20"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+
+      <span class="notification-badge" *ngIf="!(utilisateur$ | async)?.photoProfil">!</span>
+    </button>
+
+    <!-- Menu utilisateur -->
+    <div class="user-menu-container">
+      <div class="user-avatar" (click)="toggleMenu($event)">
+        <img
+          *ngIf="utilisateur.photoProfil"
+          [src]="utilisateur.photoProfil"
+          class="w-full h-full object-cover rounded-full"
+          alt="Photo profil"
+        >
+
+        <span *ngIf="!utilisateur.photoProfil">
+          {{ getInitials(utilisateur.nom, utilisateur.prenom) }}
+        </span>
+      </div>
+
+      <div
+        class="dropdown-menu fade-down"
+        [style.display]="menuOuvert ? 'block' : 'none'"
+        (click)="$event.stopPropagation()"
+      >
+
+        <a
+          [routerLink]="getDashboardRoute()"
+          [queryParams]="utilisateur.role !== 'ADMIN' ? { onglet: 'profil' } : {}"
+          class="dropdown-item"
+        >
+
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+
+          Mon profil
+        </a>
+
+        <div class="dropdown-divider"></div>
+
+        <button class="dropdown-item logout" type="button" (click)="deconnecter()">
+          <svg
+            viewBox="0 0 24 24"
+            width="18"
+            height="18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16,17 21,12 16,7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+
+          Déconnexion
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Mini messenger affiché seulement pour utilisateur connecté -->
+<app-mini-messenger
+  *ngIf="utilisateur$ | async"
+  [panneauVisible]="miniMessengerOuvert"
+  (fermerPanneauNavbar)="fermerMiniMessenger()"
+>
+</app-mini-messenger>

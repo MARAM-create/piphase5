@@ -1,0 +1,28 @@
+export enum StatutContrat {
+  BROUILLON = 'BROUILLON',
+  EN_ATTENTE = 'EN_ATTENTE',
+  EN_COURS_ANALYSE = 'EN_COURS_ANALYSE',
+  VALIDE = 'VALIDE',
+  EN_ATTENTE_PAIEMENT = 'EN_ATTENTE_PAIEMENT',
+  ACTIF = 'ACTIF',
+  ANNULE = 'ANNULE'
+}
+
+export enum StatutIa {
+  EN_ATTENTE = 'EN_ATTENTE',
+  EN_COURS = 'EN_COURS',
+  VALIDE = 'VALIDE',
+  REJETE = 'REJETE'
+}
+
+export enum IAValidationStatus {
+  PENDING = 'PENDING',
+  VALIDATED = 'VALIDATED',
+  REJECTED = 'REJECTED'
+}
+
+export enum StatutPaiement {
+  INITIE = 'INITIE',
+  VALIDE = 'VALIDE',
+  ECHOUE = 'ECHOUE'
+}

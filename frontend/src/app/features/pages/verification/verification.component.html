@@ -1,0 +1,160 @@
+<div class="verification-page">
+  <div class="verification-shell">
+
+    <div class="page-intro">
+      <span class="eyebrow">Vérification de document</span>
+      <h1>Authenticité du reçu</h1>
+      <p>Consultez et vérifiez l’authenticité d’un document émis par la plateforme Locavia.</p>
+    </div>
+
+    <!-- Chargement -->
+    <div *ngIf="chargement" class="verification-card loading-card">
+      <div class="loading-spinner"></div>
+      <h3>Vérification en cours...</h3>
+      <p>Nous analysons le document demandé.</p>
+    </div>
+
+    <!-- Erreur -->
+    <div *ngIf="!chargement && erreur" class="verification-card verification-error">
+      <div class="status-pill error">
+        <span class="pill-icon">✕</span>
+        <span>Document introuvable</span>
+      </div>
+
+      <p class="status-message">{{ erreur }}</p>
+
+      <div class="error-box">
+        <h3>La vérification a échoué</h3>
+        <p>
+          Vérifiez le numéro du reçu ou réessayez plus tard. Si le problème persiste,
+          contactez l’assistance Locavia.
+        </p>
+      </div>
+
+      <div class="card-footer center">
+        <a routerLink="/" class="btn-home">← Retour à l'accueil</a>
+      </div>
+    </div>
+
+    <!-- Succès / Résultat -->
+    <div
+      *ngIf="!chargement && resultat"
+      class="verification-card"
+      [class.invalid-card]="!resultat.valide"
+    >
+      <!-- Statut -->
+      <div class="status-wrap">
+        <div class="status-pill" [ngClass]="resultat.valide ? 'success' : 'error'">
+          <span class="pill-icon">{{ resultat.valide ? '✓' : '✕' }}</span>
+          <span>{{ resultat.valide ? 'Document Authentique' : 'Document Invalide' }}</span>
+        </div>
+
+        <p class="status-message">
+          {{ resultat.message }}
+        </p>
+      </div>
+
+      <!-- Si document valide -->
+      <div *ngIf="resultat.valide" class="details-wrapper">
+
+        <!-- Bloc 1 -->
+        <div class="info-section">
+          <div class="section-title">
+            <span class="section-icon">📄</span>
+            <h3>Informations du document</h3>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Numéro</span>
+              <span class="value">{{ resultat.numero }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Date d’achat</span>
+              <span class="value">{{ resultat.dateAchat }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Émetteur</span>
+              <span class="value">{{ resultat.emetteur }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloc 2 -->
+        <div class="info-section">
+          <div class="section-title">
+            <span class="section-icon">🛋️</span>
+            <h3>Meuble</h3>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Titre</span>
+              <span class="value">{{ resultat.titreMeuble }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Prix</span>
+              <span class="value">{{ resultat.prixMeuble }} DT</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloc 3 -->
+        <div class="info-section">
+          <div class="section-title">
+            <span class="section-icon">👥</span>
+            <h3>Parties</h3>
+          </div>
+
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="label">Acheteur</span>
+              <span class="value">{{ resultat.nomAcheteur }}</span>
+            </div>
+
+            <div class="info-item">
+              <span class="label">Vendeur</span>
+              <span class="value">{{ resultat.nomVendeur }}</span>
+            </div>
+
+            <div class="info-item" *ngIf="resultat.nomTransporteur">
+              <span class="label">Transporteur</span>
+              <span class="value">{{ resultat.nomTransporteur }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloc 4 -->
+        <div class="info-section last-section">
+          <div class="section-title">
+            <span class="section-icon">🔐</span>
+            <h3>Empreinte SHA-256</h3>
+          </div>
+
+          <div class="hash-box">
+            {{ resultat.hash }}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Si document invalide -->
+      <div *ngIf="!resultat.valide" class="invalid-box">
+        <h3>Document non valide</h3>
+        <p>
+          Le reçu demandé n’a pas pu être authentifié. Il peut être erroné,
+          altéré ou inexistant dans le système Locavia.
+        </p>
+      </div>
+
+      <div class="card-footer">
+        <p>Vérification effectuée par <strong>Locavia Platform</strong></p>
+        <a routerLink="/" class="btn-home">← Retour à l'accueil</a>
+      </div>
+    </div>
+
+  </div>
+</div>

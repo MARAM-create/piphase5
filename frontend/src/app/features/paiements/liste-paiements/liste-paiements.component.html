@@ -1,0 +1,98 @@
+<div class="paiements-container animate-fade-in">
+  <!-- Header & Summary -->
+  <header class="page-header">
+    <div class="header-content">
+      <h1 class="title-locavia title-locavia-2">Mes Paiements</h1>
+      <p class="text-stone">Consultez l'historique de vos transactions et téléchargez vos factures.</p>
+    </div>
+
+    <div class="summary-cards">
+      <div class="stat-card">
+        <div class="stat-card-label">Total Dépensé</div>
+        <div class="stat-card-value">{{ totalDepense() | number:'1.2-2' }} <small>€</small></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-label">Transactions</div>
+        <div class="stat-card-value" style="color: var(--forest)">{{ paiements().length }}</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Section -->
+  <div class="content-section">
+    
+    <!-- Loading State -->
+    <div *ngIf="loading()" class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement de vos paiements...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error()" class="error-state card-locavia">
+      <span class="material-icons text-gold" style="font-size: 48px;">error_outline</span>
+      <p>{{ error() }}</p>
+      <button class="btn-locavia btn-locavia-secondary" (click)="ngOnInit()">Réessayer</button>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading() && !error() && paiements().length === 0" class="empty-state card-locavia">
+      <span class="material-icons text-sage" style="font-size: 64px;">payments</span>
+      <h3>Aucun paiement trouvé</h3>
+      <p>Vous n'avez pas encore effectué de transactions sur Locavia.</p>
+      <button class="btn-locavia btn-locavia-primary" routerLink="/annonces">Parcourir les annonces</button>
+    </div>
+
+    <!-- Table Section -->
+    <div *ngIf="!loading() && !error() && paiements().length > 0" class="table-container card-locavia">
+      <table class="table-locavia">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>ID Transaction</th>
+            <th>Contrat / Annonce</th>
+            <th>Montant</th>
+            <th>Statut</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of paiements()" class="animate-fade-in">
+            <td>
+              <div class="date-cell">
+                <span class="material-icons" style="font-size: 16px; color: var(--stone);">calendar_today</span>
+                {{ p.datePaiement | date:'dd/MM/yyyy HH:mm' }}
+              </div>
+            </td>
+            <td>
+              <code class="transaction-id">#{{ p.id }}</code>
+            </td>
+            <td>
+              <div class="contrat-cell">
+                <div class="annonce-title">{{ p.annonceTitre || 'Contrat de location' }}</div>
+                <div class="contrat-ref">Ref: CTR-{{ p.contratId }}</div>
+              </div>
+            </td>
+            <td>
+              <span class="amount-cell">{{ p.montantTotal | number:'1.2-2' }} €</span>
+            </td>
+            <td>
+              <span [class]="'badge-locavia ' + getStatutClass(p.statutPaiement)">
+                {{ getStatutLabel(p.statutPaiement) }}
+              </span>
+            </td>
+            <td class="text-center">
+              <button 
+                *ngIf="p.statutPaiement === 'VALIDE'"
+                class="btn-icon-action" 
+                title="Télécharger la facture"
+                (click)="downloadInvoice(p.id)">
+                <span class="material-icons">receipt_long</span>
+              </button>
+              <span *ngIf="p.statutPaiement !== 'VALIDE'" class="text-stone" style="font-size: 12px; font-style: italic;">Indisponible</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,107 @@
+<div class="detail-page">
+  <section class="hero-section">
+    <div class="hero-overlay"></div>
+
+    <div class="hero-shell">
+      <div class="hero-intro">
+        <span class="eyebrow">Détail d’une demande</span>
+        <h1>Demande de service</h1>
+        <p>Consultez toutes les informations de la demande et gérez son statut facilement.</p>
+      </div>
+
+      <a routerLink="/services/prestataire" class="btn-retour">
+        ← Retour aux demandes
+      </a>
+
+      <div *ngIf="chargement" class="state-box">Chargement...</div>
+
+      <div *ngIf="erreur && !chargement" class="state-box error-box">
+        {{ erreur }}
+      </div>
+
+      <div *ngIf="demande && !chargement" class="detail-card">
+
+        <div class="detail-header">
+          <div class="detail-title-block">
+            <span class="detail-id">Demande #{{ demande.id }}</span>
+            <h2>Détail de la demande</h2>
+          </div>
+
+          <span class="badge" [ngClass]="demande.statut.toLowerCase()">
+            {{ demande.statut === 'EN_ATTENTE' ? '⏳ En attente'
+            : demande.statut === 'ACCEPTEE' ? '✅ Acceptée'
+              : '❌ Refusée' }}
+          </span>
+        </div>
+
+        <div *ngIf="succes" class="alerte-succes">{{ succes }}</div>
+
+        <div class="detail-grid">
+          <div class="info-card">
+            <div class="section-icon">👤</div>
+            <h3>Demandeur</h3>
+            <div class="info-list">
+              <p><strong>{{ demande.demandeurPrenom }} {{ demande.demandeurNom }}</strong></p>
+              <p>📧 {{ demande.demandeurEmail }}</p>
+              <p *ngIf="demande.demandeurTelephone">📞 {{ demande.demandeurTelephone }}</p>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="section-icon">📅</div>
+            <h3>Intervention souhaitée</h3>
+            <div class="info-list">
+              <p><strong>Date :</strong> {{ demande.dateService }}</p>
+              <p><strong>Heure :</strong> {{ demande.heureService }}</p>
+              <p><strong>Adresse :</strong> {{ demande.adresse }}</p>
+              <p><strong>Ville :</strong> {{ demande.ville }}</p>
+            </div>
+          </div>
+
+          <div class="info-card full-width">
+            <div class="section-icon">🛠️</div>
+            <h3>Problème décrit</h3>
+            <div class="problem-box">
+              {{ demande.probleme }}
+            </div>
+          </div>
+        </div>
+
+        <div class="actions-panel" *ngIf="estMonPrestataire()">
+          <div class="actions-header">
+            <h3>Actions</h3>
+            <p>Vous pouvez gérer cette demande selon son statut actuel.</p>
+          </div>
+
+          <div class="actions">
+            <ng-container *ngIf="demande.statut === 'EN_ATTENTE'">
+              <button (click)="refuser()" [disabled]="traitement" class="btn-refuser">
+                ❌ Refuser
+              </button>
+              <button (click)="accepter()" [disabled]="traitement" class="btn-accepter">
+                ✅ Accepter
+              </button>
+            </ng-container>
+
+            <ng-container *ngIf="demande.statut === 'ACCEPTEE'">
+              <button (click)="refuser()" [disabled]="traitement" class="btn-refuser">
+                ❌ Annuler mon acceptation
+              </button>
+            </ng-container>
+
+            <ng-container *ngIf="demande.statut === 'REFUSEE'">
+              <button (click)="accepter()" [disabled]="traitement" class="btn-accepter">
+                ✅ Changer d'avis et accepter
+              </button>
+            </ng-container>
+          </div>
+        </div>
+
+        <div class="info-lecture" *ngIf="!estMonPrestataire()">
+          📄 Vous consultez cette demande en lecture seule.
+        </div>
+
+      </div>
+    </div>
+  </section>
+</div>

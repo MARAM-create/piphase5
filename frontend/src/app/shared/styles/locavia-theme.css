@@ -1,0 +1,394 @@
+/* ═══════════════════════════════════════════════════════════
+   LOCAVIA DESIGN SYSTEM
+   Basé sur le style de la page d'accueil
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── CSS VARIABLES ── */
+:root {
+  /* Couleurs principales */
+  --forest:     #1C3D2A;
+  --forest-mid: #2A5C3F;
+  --green:      #357A52;
+  --green-lt:   #5FA878;
+  --gold:       #B8922A;
+  --gold-lt:    #D4AF5A;
+  
+  /* Neutres */
+  --white:      #FFFFFF;
+  --cream:      #F8F5EF;
+  --cream-dk:   #EEE8DC;
+  --stone:      #7A8A80;
+  --ink:        #1a1a2e;
+  --sage:       #A8C8B4;
+  --mint:       #EEF7F1;
+  
+  /* Rayons */
+  --radius:     10px;
+  --radius-lg:  18px;
+  --radius-sm:  6px;
+  
+  /* Ombres */
+  --shadow:     0 2px 12px rgba(28,61,42,.08);
+  --shadow-lg:  0 10px 36px rgba(28,61,42,.14);
+  --shadow-md:  0 4px 20px rgba(28,61,42,.12);
+  
+  /* Typographie */
+  --font-heading: 'Libre Baskerville', serif;
+  --font-body: 'Jost', 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ── UTILITAIRES DE COULEUR ── */
+.bg-forest { background-color: var(--forest); }
+.bg-green { background-color: var(--green); }
+.bg-gold { background-color: var(--gold); }
+.bg-cream { background-color: var(--cream); }
+.bg-mint { background-color: var(--mint); }
+.bg-white { background-color: var(--white); }
+
+.text-forest { color: var(--forest); }
+.text-green { color: var(--green); }
+.text-gold { color: var(--gold); }
+.text-gold-lt { color: var(--gold-lt); }
+.text-stone { color: var(--stone); }
+.text-white { color: var(--white); }
+
+/* ── BOUTONS ── */
+.btn-locavia {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  border: none;
+  text-decoration: none;
+}
+
+.btn-locavia-primary {
+  background: linear-gradient(135deg, var(--forest), var(--green));
+  color: var(--white);
+  box-shadow: 0 8px 28px rgba(28,61,42,.35);
+}
+
+.btn-locavia-primary:hover {
+  background: var(--forest-mid);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(28,61,42,.45);
+}
+
+.btn-locavia-secondary {
+  background: transparent;
+  color: var(--forest);
+  border: 1.5px solid var(--sage);
+}
+
+.btn-locavia-secondary:hover {
+  background: var(--mint);
+  border-color: var(--green-lt);
+}
+
+.btn-locavia-ghost {
+  background: rgba(255,255,255,.1);
+  color: rgba(255,255,255,.9);
+  border: 1.5px solid rgba(255,255,255,.32);
+  backdrop-filter: blur(6px);
+}
+
+.btn-locavia-ghost:hover {
+  background: rgba(255,255,255,.17);
+  border-color: rgba(255,255,255,.65);
+}
+
+/* ── CARTES ── */
+.card-locavia {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(168,200,180,.4);
+  box-shadow: var(--shadow);
+  transition: transform 0.22s, box-shadow 0.22s;
+  overflow: hidden;
+}
+
+.card-locavia:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-locavia-header {
+  padding: 24px 28px;
+  background: linear-gradient(135deg, var(--forest), var(--green));
+  color: var(--white);
+}
+
+.card-locavia-body {
+  padding: 28px;
+}
+
+/* ── FORMULAIRES ── */
+.form-locavia {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-lg);
+}
+
+.form-locavia-dark {
+  background: linear-gradient(145deg, rgba(26,92,42,0.95), rgba(45,138,66,0.95));
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  color: var(--white);
+}
+
+.input-locavia {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1.5px solid var(--cream-dk);
+  border-radius: var(--radius);
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--white);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-locavia:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(53,122,82,0.15);
+}
+
+.input-locavia::placeholder {
+  color: var(--stone);
+}
+
+.label-locavia {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--forest);
+  margin-bottom: 8px;
+  letter-spacing: 0.4px;
+}
+
+/* ── TITRES ── */
+.title-locavia {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--forest);
+  line-height: 1.18;
+}
+
+.title-locavia-1 {
+  font-size: clamp(30px, 3.5vw, 46px);
+  letter-spacing: -0.3px;
+}
+
+.title-locavia-2 {
+  font-size: clamp(24px, 2.8vw, 36px);
+  letter-spacing: -0.2px;
+}
+
+.title-locavia-3 {
+  font-size: 22px;
+  letter-spacing: -0.1px;
+}
+
+.title-locavia-gold {
+  color: var(--gold);
+}
+
+/* ── LIENS ── */
+.link-locavia {
+  color: var(--green);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+  border-bottom: 1px solid transparent;
+}
+
+.link-locavia:hover {
+  color: var(--forest);
+  border-bottom-color: var(--gold-lt);
+}
+
+/* ── BADGES ── */
+.badge-locavia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.badge-locavia-success {
+  background: var(--mint);
+  color: var(--green);
+}
+
+.badge-locavia-warning {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.badge-locavia-danger {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+/* ── TABLEAUX ── */
+.table-locavia {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+
+.table-locavia thead {
+  background: var(--forest);
+  color: var(--white);
+}
+
+.table-locavia th {
+  padding: 16px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-align: left;
+}
+
+.table-locavia td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--cream-dk);
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.table-locavia tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table-locavia tbody tr:hover {
+  background: var(--mint);
+}
+
+/* ── NAVBAR ── */
+.navbar-locavia {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: 70px;
+  padding: 0 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,.97);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(168,200,180,.3);
+}
+
+/* ── SIDEBAR ── */
+.sidebar-locavia {
+  background: var(--forest);
+  color: var(--white);
+  width: 260px;
+  min-height: 100vh;
+  padding: 24px 0;
+}
+
+.sidebar-locavia-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+  color: rgba(255,255,255,.7);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.sidebar-locavia-item:hover,
+.sidebar-locavia-item.active {
+  background: rgba(255,255,255,.08);
+  color: var(--white);
+  border-left-color: var(--gold-lt);
+}
+
+/* ── PAGE CONTAINER ── */
+.page-locavia {
+  min-height: 100vh;
+  background: var(--cream);
+  padding-top: 70px; /* Pour la navbar fixe */
+}
+
+.page-locavia-dark {
+  min-height: 100vh;
+  background: linear-gradient(150deg, rgba(14,30,20,.9) 0%, rgba(22,48,32,.85) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* ── GRID & LAYOUT ── */
+.grid-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.stat-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  border: 1px solid rgba(168,200,180,.4);
+  box-shadow: var(--shadow);
+  transition: transform 0.22s, box-shadow 0.22s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.stat-card-value {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.stat-card-label {
+  font-size: 12px;
+  color: var(--stone);
+  margin-top: 8px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out;
+}

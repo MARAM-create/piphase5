@@ -1,0 +1,146 @@
+<div class="mes-meubles-page">
+  <section class="hero-section">
+    <div class="hero-overlay"></div>
+
+    <div class="hero-shell">
+      <div class="hero-intro">
+        <span class="eyebrow">Gestion de mes annonces</span>
+        <h1>Mes meubles publiés</h1>
+        <p>Gérez vos annonces de meubles publiés, modifiez-les ou consultez leurs détails.</p>
+      </div>
+
+      <div class="table-card">
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <div class="filter-box">
+              <span class="filter-icon"></span>
+              <select [(ngModel)]="filtreStatut">
+                <option value="TOUS">Tout</option>
+                <option value="DISPONIBLE">Disponible</option>
+                <option value="VENDU">Vendu</option>
+                <option value="RESERVE">Réservé</option>
+              </select>
+            </div>
+
+            <div class="search-box">
+              <span class="search-icon"></span>
+              <input
+                type="text"
+                [(ngModel)]="recherche"
+                placeholder="Rechercher par titre, catégorie ou ville"
+              />
+            </div>
+          </div>
+
+          <a routerLink="/meubles/publier" class="btn-publier">
+            + Publier une annonce
+          </a>
+        </div>
+
+        <div *ngIf="chargement" class="state-box">Chargement...</div>
+        <div *ngIf="erreur" class="state-box error">{{ erreur }}</div>
+
+        <div *ngIf="!chargement && !erreur && meublesFiltres.length === 0"
+             class="state-box">
+          Vous n'avez aucun meuble correspondant à ce filtre.
+        </div>
+
+        <div class="table-wrapper"
+             *ngIf="!chargement && !erreur && meublesFiltres.length > 0">
+          <table class="table">
+            <thead>
+            <tr>
+              <th class="col-id">ID</th>
+              <th class="col-titre">Titre</th>
+              <th class="col-prix">Prix</th>
+              <th class="col-etat">État</th>
+              <th class="col-actions">Actions</th>
+              <th class="col-details">Détails</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr *ngFor="let m of meublesFiltres; trackBy: trackByMeubleId">
+
+              <!-- ID -->
+              <td class="id-cell">{{ m.id }}</td>
+
+              <!-- Titre + photo -->
+              <td class="title-cell">
+                <div class="title-wrap">
+                  <div class="thumb-wrap">
+                    <img
+                      *ngIf="getPhotoPrincipale(m) as photo; else noPhoto"
+                      [src]="photo"
+                      [alt]="m.titre"
+                      class="photo-mini"
+                    />
+                    <ng-template #noPhoto>
+                      <div class="photo-placeholder">📷</div>
+                    </ng-template>
+                  </div>
+                  <div class="title-meta">
+                    <strong>{{ m.titre }}</strong>
+                    <span>{{ m.categorie }}</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Prix -->
+              <td class="prix-cell">{{ m.prix }} DT</td>
+
+              <!-- État + Statut -->
+              <td>
+                <div class="etat-stack">
+                    <span class="badge-statut" [ngClass]="getStatutClass(m.statut)">
+                      {{ getStatutLabel(m.statut) }}
+                    </span>
+                  <span class="etat-text">{{ getEtatLabel(m.etat) }}</span>
+                </div>
+              </td>
+
+              <!-- Actions -->
+              <td>
+                <div class="actions-cell">
+
+                  <!-- Modifier (sauf si vendu) -->
+                  <ng-container *ngIf="m.statut !== 'VENDU'">
+                    <a [routerLink]="['/meubles/modifier', m.id]"
+                       class="btn-edit">
+                      Modifier
+                    </a>
+                  </ng-container>
+
+                  <!-- Rendre disponible (si vendu) -->
+                  <ng-container *ngIf="m.statut === 'VENDU'">
+                    <button (click)="rendreDisponible(m.id)"
+                            class="btn-disponible"
+                            title="Rendre disponible suite à annulation">
+                      Rendre disponible
+                    </button>
+                  </ng-container>
+
+                  <!-- Supprimer -->
+                  <button type="button" (click)="supprimer(m.id)"
+                          class="btn-delete">
+                    Supprimer
+                  </button>
+
+                </div>
+              </td>
+
+              <!-- Voir détail -->
+              <td>
+                <a [routerLink]="['/meubles', m.id]" class="btn-view">
+                  Voir
+                </a>
+              </td>
+
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

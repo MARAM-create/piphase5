@@ -1,0 +1,404 @@
+<div class="flex h-screen bg-gray-50 overflow-hidden w-full">
+  <div class="flex-1 overflow-x-hidden flex flex-col w-full">
+    <!-- Header -->
+    <header
+      class="flex-shrink-0 flex justify-between items-center px-12 py-6 bg-white border-b font-headline z-10 w-full">
+      <div class="flex items-center gap-8">
+        <h2 class="text-3xl font-black text-blue-800">Contrats &amp; Paiements</h2>
+        <nav class="hidden md:flex gap-6">
+          <a class="text-slate-500 hover:text-blue-500 transition-colors" href="#">Support</a>
+          <a class="text-slate-500 hover:text-blue-500 transition-colors" href="#">Documents</a>
+        </nav>
+      </div>
+      <div class="flex items-center gap-4">
+        <button
+          class="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
+          <span class="material-icons">notifications</span>
+        </button>
+        <button
+          class="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
+          <span class="material-icons">account_circle</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="flex-1 overflow-y-auto bg-gray-50">
+      <div class="max-w-7xl mx-auto w-full p-8 lg:p-12">
+
+      <!-- Page Title -->
+      <div class="mb-12">
+        <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">Mes Contrats</h1>
+        <p class="mt-2 text-gray-500 text-base">Gérez et suivez l'ensemble de vos contrats de location.</p>
+      </div>
+
+      <!-- Alertes de Paiement -->
+      @if (alertesPaiement().length > 0) {
+      <div class="mb-8 space-y-3">
+        @for (alerte of alertesPaiement(); track alerte.id) {
+          <div class="bg-orange-50 border-l-4 border-orange-500 p-5 rounded-r-2xl flex items-center justify-between gap-4 shadow-sm animate-slideDown">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 flex-shrink-0">
+                <span class="material-icons font-bold">warning</span>
+              </div>
+              <div>
+                <h4 class="text-orange-900 font-extrabold tracking-tight">📅 Prochaine échéance : Contrat Actif</h4>
+                <p class="text-orange-800 text-sm mt-1">
+                  Le paiement du loyer pour l'annonce <strong>« {{ alerte.annonceTitre }} »</strong> est attendu pour le <strong>{{ alerte.prochainPaiement | date:'dd MMM yyyy' }}</strong>.
+                </p>
+              </div>
+            </div>
+            <button (click)="voirCalendrier(alerte)"
+                    class="bg-white px-4 py-2 rounded-xl border border-orange-200 text-orange-600 text-xs font-bold hover:bg-orange-100 shadow-sm transition-colors uppercase tracking-wider">
+              Voir le calendrier
+            </button>
+          </div>
+        }
+      </div>
+      }
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+        <div class="bg-white p-8 rounded-2xl shadow-sm space-y-4">
+          <div class="flex justify-between items-start">
+            <div class="p-3 bg-blue-50 rounded-xl">
+              <span class="material-icons text-primary">description</span>
+            </div>
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Total contrats</p>
+            <h3 class="text-3xl font-black text-gray-900 mt-1">{{ contrats().length }}</h3>
+          </div>
+        </div>
+
+        <div class="bg-white p-8 rounded-2xl shadow-sm space-y-4">
+          <div class="flex justify-between items-start">
+            <div class="p-3 bg-green-50 rounded-xl">
+              <span class="material-icons text-green-600">verified_user</span>
+            </div>
+            @if (activeCount() > 0) {
+            <span class="text-xs font-bold text-green-600 uppercase tracking-wider">En cours</span>
+            }
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">Contrats actifs</p>
+            <h3 class="text-3xl font-black text-gray-900 mt-1">{{ activeCount() }}</h3>
+          </div>
+        </div>
+
+        <div class="bg-white p-8 rounded-2xl shadow-sm space-y-4">
+          <div class="flex justify-between items-start">
+            <div class="p-3 bg-amber-50 rounded-xl">
+              <span class="material-icons text-amber-500">hourglass_top</span>
+            </div>
+            @if (pendingCount() > 0) {
+            <span class="text-xs font-bold text-amber-600 uppercase tracking-wider">À traiter</span>
+            }
+          </div>
+          <div>
+            <p class="text-gray-500 text-sm">En attente</p>
+            <h3 class="text-3xl font-black text-gray-900 mt-1">{{ pendingCount() }}</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section Header -->
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Contrats de Location</h2>
+        <button class="text-primary text-sm font-bold flex items-center gap-1 hover:underline cursor-pointer">
+          Voir les archives <span class="material-icons text-xs">arrow_forward</span>
+        </button>
+      </div>
+
+      <!-- Filter Buttons, Search Bar and Date Picker -->
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-8 bg-white p-4 rounded-2xl shadow-sm">
+        <div class="flex items-center gap-2">
+          <button type="button" (click)="setFiltre('TOUS')"
+            [class]="filtreActif() === 'TOUS' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600'"
+            class="px-4 py-2 rounded-xl font-bold text-xs transition-all hover:shadow-md uppercase tracking-wider">
+            Tous
+          </button>
+          <button type="button" (click)="setFiltre('SIGNES')"
+            [class]="filtreActif() === 'SIGNES' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600'"
+            class="px-4 py-2 rounded-xl font-bold text-xs transition-all hover:shadow-md uppercase tracking-wider">
+            Signés
+          </button>
+          <button type="button" (click)="setFiltre('ACTIFS')"
+            [class]="filtreActif() === 'ACTIFS' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'"
+            class="px-4 py-2 rounded-xl font-bold text-xs transition-all hover:shadow-md uppercase tracking-wider">
+            Actifs
+          </button>
+        </div>
+
+        <div class="flex items-center gap-3 flex-1 max-w-2xl">
+          <div class="relative flex-1">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-icons text-xl">search</span>
+            <input
+              class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium"
+              placeholder="Rechercher par locataire, bailleur or ref..." type="text" [(ngModel)]="searchTerm" (input)="onSearch()" />
+          </div>
+          
+          <div class="relative min-w-[180px]">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-icons text-xl">calendar_today</span>
+            <input
+              class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 transition-all font-medium"
+              type="date" [(ngModel)]="searchDate" (change)="onSearch()" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Contract List -->
+      <div class="flex flex-col gap-6">
+
+        @if (loading()) {
+        @for (i of [1, 2, 3]; track i) {
+        <div class="bg-white p-8 rounded-2xl shadow-sm animate-pulse flex items-center gap-6">
+          <div class="w-14 h-14 rounded-xl bg-gray-200"></div>
+          <div class="flex-1 space-y-3">
+            <div class="h-4 w-1/3 bg-gray-200 rounded"></div>
+            <div class="h-3 w-2/3 bg-gray-200 rounded"></div>
+            <div class="h-3 w-1/4 bg-gray-200 rounded"></div>
+          </div>
+          <div class="w-32 h-10 bg-gray-200 rounded-lg"></div>
+        </div>
+        }
+        }
+
+        @if (error()) {
+        <div class="bg-red-50 border border-red-200 p-8 rounded-2xl flex items-start gap-4">
+          <div class="flex-shrink-0 p-2 bg-red-100 rounded-xl">
+            <span class="material-icons text-red-500">error</span>
+          </div>
+          <div>
+            <h4 class="font-bold text-red-800">Erreur de connexion</h4>
+            <p class="text-sm text-red-600 mt-1">{{ error() }}</p>
+          </div>
+        </div>
+        }
+
+        @if (!loading() && !error() && filteredContrats.length === 0) {
+        <div class="bg-white p-16 rounded-2xl shadow-sm flex flex-col items-center justify-center text-center">
+          <div class="p-5 bg-gray-100 rounded-2xl mb-5">
+            <span class="material-icons text-5xl text-gray-400">folder_off</span>
+          </div>
+          <h4 class="font-bold text-gray-800 text-lg">Aucun contrat trouvé</h4>
+          <p class="text-sm text-gray-500 mt-2 max-w-md">Vous n'avez aucun contrat de location pour le moment. Créez une
+            nouvelle demande pour commencer.</p>
+        </div>
+        }
+
+        @if (!loading() && !error()) {
+        @for (contrat of filteredContrats; track contrat.id) {
+        <div class="card-locavia bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+          <div class="p-8 flex items-start gap-6 group">
+
+            <div class="w-14 h-14 rounded-xl bg-blue-50 flex-shrink-0 flex items-center justify-center">
+              <span class="material-icons text-2xl text-primary/70">{{ getStatutIcon(contrat.statutContrat)
+                }}</span>
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center gap-3 mb-1 w-full overflow-hidden">
+                <h4 class="font-bold text-gray-900 text-base group-hover:text-primary transition-colors truncate max-w-[50%]">{{
+                  contrat.annonceTitre }}</h4>
+                @if (contrat.iaValidationStatus === 'VALIDATED') {
+                <span class="material-icons text-sm text-emerald-600" title="Validé par l'IA">shield</span>
+                }
+                <span [class]="getBadgeClasses(contrat)">
+                  {{ getStatutLabel(contrat) }}
+                </span>
+
+                @if (contrat.iaValidationStatus === 'VALIDATED' && contrat.statutContrat === 'EN_ATTENTE_PAIEMENT') {
+                <button type="button" (click)="procederAuPaiement(contrat.id)"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 shadow-sm transition-all ml-1">
+                  <i class="fas fa-credit-card"></i> Payer via Stripe
+                </button>
+                }
+                @if (contrat.iaValidationStatus === 'VALIDATED' && contrat.statutContrat === 'ACTIF') {
+                <button type="button" (click)="telechargerFacture(contrat.id)"
+                  class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 shadow-sm transition-all ml-1">
+                  <span class="material-icons text-sm">receipt</span> Télécharger Facture
+                </button>
+                }
+              </div>
+
+              <div class="flex flex-wrap items-center gap-x-8 gap-y-2 mt-3 text-sm text-gray-500">
+                <div class="flex items-center gap-2">
+                  <span class="material-icons text-base text-gray-400">person</span>
+                  <span><span class="font-semibold text-gray-700">Locataire :</span> {{ contrat.locataireFullName
+                    }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="material-icons text-base text-gray-400">home_work</span>
+                  <span><span class="font-semibold text-gray-700">Bailleur :</span> {{ contrat.bailleurFullName }}</span>
+                </div>
+                @if (contrat.dateDebut || contrat.dateFin) {
+                <div class="flex items-center gap-2">
+                  <span class="material-icons text-base text-gray-400">calendar_month</span>
+                  <span>
+                    @if (contrat.dateDebut && contrat.dateFin) {
+                    {{ contrat.dateDebut }} → {{ contrat.dateFin }}
+                    } @else if (contrat.dateDebut) {
+                    Début : {{ contrat.dateDebut }}
+                    } @else {
+                    Fin : {{ contrat.dateFin }}
+                    }
+                  </span>
+                </div>
+                }
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 flex-shrink-0">
+              <input type="file" #fileInput class="hidden" accept=".pdf,.jpg,.jpeg,.png"
+                (change)="onFileSelected($event, contrat.id)" />
+
+              <button type="button" (click)="fileInput.click()"
+                [disabled]="scanningContratId === contrat.id"
+                class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500 cursor-pointer hover:text-green-600 hover:bg-green-50 transition-colors p-1 disabled:opacity-60 disabled:cursor-not-allowed"
+                [title]="scanningContratId === contrat.id ? 'Analyse IA en cours...' : 'Téléverser un document signé (PDF, JPG, PNG)'">
+                @if (scanningContratId === contrat.id) {
+                  <span class="animate-spin material-icons text-blue-500">autorenew</span>
+                } @else {
+                  <span class="material-icons">cloud_upload</span>
+                }
+              </button>
+
+              <button type="button" (click)="downloadPdf(contrat.id)"
+                class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500 cursor-pointer hover:text-blue-600 hover:bg-blue-50 transition-all"
+                title="Télécharger le PDF">
+                <span class="material-icons">picture_as_pdf</span>
+              </button>
+
+              <button type="button" (click)="voirCalendrier(contrat)"
+                class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500 cursor-pointer hover:text-indigo-600 hover:bg-indigo-50 transition-all"
+                title="Voir l'échéancier de paiements">
+                <span class="material-icons">calendar_month</span>
+              </button>
+
+              @if (contrat.statutContrat === 'ACTIF') {
+              <button type="button" (click)="toggleHistory(contrat.id)"
+                [class.bg-amber-50]="expandedHistoryId === contrat.id"
+                [class.text-amber-600]="expandedHistoryId === contrat.id"
+                class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500 cursor-pointer hover:text-amber-600 hover:bg-amber-50 transition-all"
+                title="Historique des paiements">
+                <span class="material-icons">receipt_long</span>
+              </button>
+              }
+
+              <button type="button" (click)="supprimerContrat(contrat.id)"
+                class="w-10 h-10 flex items-center justify-center rounded-xl bg-gray-100 text-gray-500 cursor-pointer hover:text-red-600 hover:bg-red-50 transition-all"
+                title="Supprimer ce contrat">
+                <span class="material-icons">delete</span>
+              </button>
+
+              @if (contrat.imageScanneUrl) {
+              <button type="button" (click)="ouvrirPdf(contrat.imageScanneUrl)"
+                class="w-10 h-10 flex items-center justify-center rounded-xl bg-green-50 text-green-600 cursor-pointer hover:text-green-700 hover:bg-green-100 transition-all"
+                [title]="contrat.iaValidationStatus === 'VALIDATED' ? 'Contrat signé et validé' : 'Contrat signé (en attente de validation)'">
+                <span class="material-icons">check_circle</span>
+                @if (contrat.iaValidationStatus === 'VALIDATED') {
+                <span
+                  class="absolute -top-2 -right-2 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white text-xs font-bold">✓</span>
+                }
+              </button>
+              }
+
+            </div>
+          </div> <!-- Fin Row Principale -->
+
+          <!-- Expandable History Section -->
+          @if (expandedHistoryId === contrat.id) {
+          <div class="bg-gray-50 border-t border-gray-100 px-8 py-6 animate-slideDown">
+            <h5 class="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <span class="material-icons text-amber-500 text-lg">history</span>
+              Historique des transactions Stripe
+            </h5>
+
+            @if (historiqueLoading) {
+              <div class="animate-pulse flex items-center gap-4 py-2">
+                <div class="h-4 w-24 bg-gray-200 rounded"></div>
+                <div class="h-4 w-32 bg-gray-200 rounded"></div>
+              </div>
+            } @else if (historiquePaiements.length === 0) {
+              <p class="text-sm text-gray-500 bg-white p-4 rounded-xl border border-gray-100">Aucune transaction trouvée.</p>
+            } @else {
+              <div class="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm">
+                <table class="w-full text-left text-sm">
+                  <thead class="bg-gray-50/80 border-b border-gray-100 text-gray-500">
+                    <tr>
+                      <th class="py-3 px-4 font-semibold">Date de paiement</th>
+                      <th class="py-3 px-4 font-semibold">Montant payé</th>
+                      <th class="py-3 px-4 font-semibold">Mode</th>
+                      <th class="py-3 px-4 font-semibold">Statut</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-50">
+                    @for (paiement of historiquePaiements; track paiement.id) {
+                    <tr class="hover:bg-gray-50/50 transition-colors">
+                      <td class="py-3 px-4 font-medium text-gray-700">{{ paiement.datePaiement | date:'dd MMM yyyy, HH:mm' }}</td>
+                      <td class="py-3 px-4 font-bold text-gray-900">{{ paiement.montantTotal }} EUR</td>
+                      <td class="py-3 px-4 text-gray-500 font-mono text-xs flex items-center gap-1.5 mt-0.5">
+                        <i class="fab fa-stripe text-indigo-500 text-base"></i>
+                        {{ paiement.stripeSessionId.substring(0, 15) }}...
+                      </td>
+                      <td class="py-3 px-4">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-700">
+                          <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5"></span>
+                          {{ paiement.statutPaiement }}
+                        </span>
+                      </td>
+                    </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+          }
+        </div>
+        }
+        }
+
+      </div>
+
+      </div>
+    </main>
+
+
+
+<!-- Modal Echéancier de Paiements -->
+@if (isCalendrierModalOpen) {
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 animate-fadeIn">
+  <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl flex flex-col overflow-hidden animate-slideUp">
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+      <div>
+        <h3 class="text-lg font-bold text-gray-900">Échéancier de paiements</h3>
+        <p class="text-sm text-gray-500 mt-1 max-w-md truncate">{{ calendrierContratTitre }}</p>
+      </div>
+      <button type="button" (click)="fermerCalendrier()"
+        class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+        <span class="material-icons text-xl">close</span>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 overflow-y-auto max-h-[80vh] w-full">
+      <div class="rounded-xl overflow-hidden shadow-sm border border-gray-100">
+        <full-calendar [options]="calendarOptions"></full-calendar>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+      <button type="button" (click)="fermerCalendrier()"
+        class="px-5 py-2.5 rounded-xl font-bold text-sm bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm">
+        Fermer
+      </button>
+    </div>
+  </div>
+</div>
+}
+  </div>
+</div>

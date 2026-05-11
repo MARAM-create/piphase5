@@ -1,0 +1,56 @@
+<div class="visite360-wrapper">
+
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <div class="v360-header">
+    <div class="v360-header-left">
+      <div class="v360-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="v360-label">Visite virtuelle 360°</div>
+        <div class="v360-titre">{{ titrePropriete }}</div>
+      </div>
+    </div>
+
+    <div class="v360-hint" *ngIf="sceneActive">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 9l-3 3 3 3M9 5l3-3 3 3M15 19l-3 3-3-3M19 9l3 3-3 3"/>
+      </svg>
+      Glissez pour explorer
+    </div>
+  </div>
+
+  <!-- ── Viewer panoramique ──────────────────────────────── -->
+  <div class="v360-stage">
+    <div
+      #panoramaContainer
+      class="v360-canvas"
+      [class.vide]="!sceneActive">
+    </div>
+
+    <!-- Placeholder si pas de scène -->
+    <div class="v360-empty" *ngIf="!sceneActive">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+      <p>Aucune photo panoramique disponible</p>
+    </div>
+  </div>
+
+  <!-- ── Navigation pièces ───────────────────────────────── -->
+  <div class="v360-nav" *ngIf="scenes.length > 1">
+    <button
+      class="v360-nav-btn"
+      *ngFor="let scene of scenes"
+      [class.active]="sceneActive?.id === scene.id"
+      (click)="chargerScene(scene)">
+      <span class="v360-nav-dot"></span>
+      {{ scene.titre }}
+    </button>
+  </div>
+
+</div>

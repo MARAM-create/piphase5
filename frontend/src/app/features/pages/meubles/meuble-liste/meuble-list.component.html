@@ -1,0 +1,365 @@
+<div class="meubles-page">
+
+  <!-- HERO MEUBLES -->
+  <section class="meubles-hero">
+    <div class="meubles-hero-overlay"></div>
+
+    <div class="meubles-hero-content">
+      <div class="meubles-hero-text">
+        <h1>Meubles disponibles</h1>
+        <p>Découvrez des meubles vérifiés, élégants et accessibles pour votre logement.<br>
+        Trouvez rapidement le meuble adapté à votre espace, votre budget et vos besoins.</p>
+      </div>
+
+      <div class="meubles-hero-actions">
+        <button type="button" class="btn-guide" (click)="allerAuGuide()">
+          📖 Conseils &amp; Guide
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="layout">
+
+    <div class="left-col">
+      <app-filter-sidebar (filtersChange)="onFiltersChange($event)"></app-filter-sidebar>
+    </div>
+
+    <div class="right-col">
+
+      <div class="content-header">
+        <div class="header-left">
+          <p>{{ meublesFiltres.length }} annonces</p>
+        </div>
+
+        <div class="header-right">
+          <a routerLink="/meubles/mes-meubles" class="btn-secondary">
+            Mes meubles
+          </a>
+
+          <a routerLink="/meubles/publier" class="btn-publier">
+            + Publier un meuble
+          </a>
+
+          <div class="sort-box">
+            <label for="tri">Trier par :</label>
+            <select id="tri" [(ngModel)]="selectedSort" (change)="onSortChange()">
+              <option value="recent">Récent</option>
+              <option value="priceAsc">Prix croissant</option>
+              <option value="priceDesc">Prix décroissant</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="chargement" class="chargement">Chargement...</div>
+      <div *ngIf="erreur" class="erreur">{{ erreur }}</div>
+
+      <div *ngIf="!chargement && meublesFiltres.length === 0" class="vide">
+        Aucune annonce trouvée.
+      </div>
+
+      <div class="meubles-grid" *ngIf="!chargement && meublesFiltres.length > 0">
+        <div *ngFor="let meuble of meublesFiltres" class="meuble-card">
+
+          <div class="meuble-photo">
+            <img
+              *ngIf="meuble.photos && meuble.photos.length > 0"
+              [src]="getPhotoUrl(meuble.photos[0])"
+              [alt]="meuble.titre"
+            />
+
+            <div *ngIf="!meuble.photos || meuble.photos.length === 0" class="no-photo">
+              📷 Pas de photo
+            </div>
+
+            <span class="badge-etat" [ngClass]="meuble.etat.toLowerCase()">
+              {{ meuble.etat === 'BON_ETAT' ? 'Bon état' : meuble.etat === 'NEUF' ? 'Neuf' : 'Usagé' }}
+            </span>
+          </div>
+
+          <div class="meuble-infos">
+            <h3>{{ meuble.titre }}</h3>
+
+            <div class="info-line">
+              <span class="info-icon">🪑</span>
+              <span class="info-text">{{ meuble.categorie }}</span>
+            </div>
+
+            <div class="info-line">
+              <span class="info-icon">📍</span>
+              <span class="info-text">{{ meuble.ville }}</span>
+            </div>
+
+            <div class="price-row">
+              <p class="prix">{{ meuble.prix }} DT</p>
+
+              <span [ngClass]="getPrixBadgeClass(meuble)">
+                {{ getPrixBadgeLabel(meuble) }}
+              </span>
+            </div>
+
+            <div class="mini-separator"></div>
+
+            <div class="meta-grid">
+              <div class="meta-item">
+                <span class="meta-label">Catégorie</span>
+                <span class="meta-value">{{ meuble.categorie }}</span>
+              </div>
+
+              <div class="meta-item">
+                <span class="meta-label">État</span>
+                <span class="meta-value">
+                  {{ meuble.etat === 'BON_ETAT' ? 'Bon état' : meuble.etat === 'NEUF' ? 'Neuf' : 'Usagé' }}
+                </span>
+              </div>
+
+              <div class="meta-item">
+                <span class="meta-label">Vendeur</span>
+                <span class="meta-value">{{ meuble.vendeurPrenom }} {{ meuble.vendeurNom }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="meuble-actions">
+            <a [routerLink]="['/meubles', meuble.id]" class="btn-detail">
+              👁 Voir détail
+            </a>
+
+            <ng-container *ngIf="estMonMeuble(meuble); else actionsAcheteur">
+              <a [routerLink]="['/meubles/modifier', meuble.id]" class="btn-edit">
+                Modifier
+              </a>
+            </ng-container>
+
+            <ng-template #actionsAcheteur>
+              <button
+                *ngIf="meuble.statut === 'DISPONIBLE'"
+                (click)="ouvrirModalAchat(meuble)"
+                class="btn-acheter">
+                🛒 Acheter
+              </button>
+
+              <span *ngIf="meuble.statut === 'VENDU'" class="badge-vendu">Vendu</span>
+            </ng-template>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- DERNIÈRE PARTIE : GUIDE ET ASSISTANCE -->
+      <section id="guide-assistance" class="guide-section">
+        <div class="guide-head">
+          <span>📖</span>
+
+          <div>
+            <h2>Guide & Assistance</h2>
+            <p>Retrouvez les conseils essentiels pour acheter, publier ou transporter un meuble.</p>
+          </div>
+        </div>
+
+        <div class="guide-grid">
+          <div class="guide-card">
+            <strong>Vérifier l’état du meuble</strong>
+            <p>
+              Consultez les photos, l’état annoncé et les informations du vendeur avant de confirmer l’achat.
+            </p>
+          </div>
+
+          <div class="guide-card">
+            <strong>Comparer le prix</strong>
+            <p>
+              Les badges comme “Très bon prix” ou “Prix à comparer” vous aident à mieux évaluer l’annonce.
+            </p>
+          </div>
+
+          <div class="guide-card">
+            <strong>Prévoir le transport</strong>
+            <p>
+              Après l’achat, vous pouvez choisir un transporteur disponible ou gérer le transport vous-même.
+            </p>
+          </div>
+
+          <div class="guide-card">
+            <strong>Assistance Locavia</strong>
+            <p>
+              En cas de problème avec une annonce, un achat ou un vendeur, contactez le support via Réclamation/Avis.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- ══ MODAL ACHAT ══════════════════════════════════════ -->
+  <div class="achat-modal-overlay" *ngIf="modalAchatOuvert && meubleSelectionne" (click)="fermerModalAchat()">
+    <div class="achat-modal-card" (click)="$event.stopPropagation()">
+
+      <button type="button" class="achat-close" (click)="fermerModalAchat()">✕</button>
+
+      <!-- ETAPE 1 : CONFIRMATION -->
+      <ng-container *ngIf="etape === 'confirmation'">
+        <div class="achat-modal-header">
+          <div class="achat-title-wrap">
+            <span class="achat-title-icon">🛍️</span>
+            <h2>Confirmer l'achat</h2>
+          </div>
+          <p>Vérifiez les détails du meuble avant de finaliser l’achat.</p>
+        </div>
+
+        <div class="achat-summary-card">
+          <div class="achat-summary-top">
+            <div class="achat-image-box">
+              <img
+                *ngIf="meubleSelectionne.photos && meubleSelectionne.photos.length > 0; else noPhotoModal"
+                [src]="getPhotoUrl(meubleSelectionne.photos[0])"
+                [alt]="meubleSelectionne.titre"
+                class="achat-image"
+              />
+
+              <ng-template #noPhotoModal>
+                <div class="achat-no-photo">📷</div>
+              </ng-template>
+            </div>
+
+            <div class="achat-meta">
+              <div class="achat-id">Annonce #{{ meubleSelectionne.id }}</div>
+              <h3>{{ meubleSelectionne.titre }}</h3>
+
+              <div class="achat-meta-line">📍 {{ meubleSelectionne.ville }}</div>
+              <div class="achat-meta-line">🪑 {{ meubleSelectionne.categorie }}</div>
+              <div class="achat-meta-line">
+                ✨ {{
+                  meubleSelectionne.etat === 'BON_ETAT'
+                    ? 'Bon état'
+                    : meubleSelectionne.etat === 'NEUF'
+                      ? 'Neuf'
+                      : 'Usagé'
+                }}
+              </div>
+
+              <div class="achat-vendeur-inline">
+                Vendeur : {{ meubleSelectionne.vendeurPrenom }} {{ meubleSelectionne.vendeurNom }}
+              </div>
+            </div>
+          </div>
+
+          <div class="achat-divider"></div>
+
+          <div class="achat-info-grid">
+            <div class="achat-info-box">
+              <span class="achat-label">Catégorie</span>
+              <strong>{{ meubleSelectionne.categorie }}</strong>
+            </div>
+
+            <div class="achat-price-box">
+              <span class="achat-label">Prix</span>
+              <strong>{{ meubleSelectionne.prix }} DT</strong>
+            </div>
+
+            <div class="achat-info-box achat-seller-box">
+              <span class="achat-label">Vendeur</span>
+              <strong>{{ meubleSelectionne.vendeurPrenom }} {{ meubleSelectionne.vendeurNom }}</strong>
+              <span>{{ meubleSelectionne.vendeurEmail }}</span>
+              <span *ngIf="meubleSelectionne.vendeurTelephone">📞 {{ meubleSelectionne.vendeurTelephone }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="achatErreur" class="achat-erreur">
+          {{ achatErreur }}
+        </div>
+
+        <div class="achat-actions">
+          <button type="button" class="btn-annuler-achat" (click)="fermerModalAchat()" [disabled]="achatEnCours">
+            Annuler
+          </button>
+
+          <button type="button" class="btn-confirmer-achat" (click)="confirmerAchat()" [disabled]="achatEnCours">
+            {{ achatEnCours ? 'Confirmation...' : '🛍️ Confirmer l’achat' }}
+          </button>
+        </div>
+      </ng-container>
+
+      <!-- ETAPE 2 : PRESTATAIRE -->
+      <ng-container *ngIf="etape === 'prestataire' && !achatSucces">
+        <div class="achat-modal-header">
+          <div class="achat-title-wrap">
+            <span class="achat-title-icon">🚚</span>
+            <h2>Choisir un transporteur</h2>
+          </div>
+          <p>Achat confirmé. Souhaitez-vous demander un transporteur ?</p>
+        </div>
+
+        <div class="achat-strip">
+          <img
+            *ngIf="meubleSelectionne.photos && meubleSelectionne.photos.length > 0"
+            [src]="getPhotoUrl(meubleSelectionne.photos[0])"
+            [alt]="meubleSelectionne.titre"
+          />
+
+          <div>
+            <strong>{{ meubleSelectionne.titre }}</strong>
+            <span>{{ meubleSelectionne.prix }} DT</span>
+          </div>
+        </div>
+
+        <div *ngIf="chargementPrestataires" class="chargement-presta">
+          Chargement des prestataires...
+        </div>
+
+        <div class="prestataires-list" *ngIf="!chargementPrestataires">
+          <button type="button" class="prestataire-card sans-transport" (click)="sansTransporteur()">
+            <div class="prestataire-avatar"><span>📦</span></div>
+
+            <div class="prestataire-info">
+              <strong>Sans transporteur</strong>
+              <span>Je m’occupe du transport moi-même</span>
+            </div>
+
+            <span class="prestataire-action">Continuer</span>
+          </button>
+
+          <div *ngFor="let p of prestatairesDemo" class="prestataire-card" (click)="choisirPrestataire(p)">
+            <div class="prestataire-avatar">
+              <img *ngIf="p.photoProfil" [src]="getPhotoPrestataire(p.photoProfil)" [alt]="p.prenom">
+              <span *ngIf="!p.photoProfil">{{ p.prenom[0] }}{{ p.nom[0] }}</span>
+            </div>
+
+            <div class="prestataire-info">
+              <strong>{{ p.prenom }} {{ p.nom }}</strong>
+              <span>{{ p.specialite }}</span>
+              <span *ngIf="p.tarifHoraire">💰 {{ p.tarifHoraire }} DT/h</span>
+              <span *ngIf="p.ville">📍 {{ p.ville }}</span>
+            </div>
+
+            <span class="prestataire-action">Choisir</span>
+          </div>
+
+          <div *ngIf="prestatairesDemo.length === 0" class="vide-demo">
+            Aucun prestataire disponible pour le moment.
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ETAPE 3 : SUCCES -->
+      <ng-container *ngIf="achatSucces">
+        <div class="achat-success">
+          <div class="achat-success-icon">✅</div>
+          <h2>Achat confirmé</h2>
+          <p>
+            Votre meuble <strong>{{ meubleSelectionne.titre }}</strong> a bien été acheté.
+            <br>
+            Un reçu PDF a été envoyé par email.
+          </p>
+
+          <button type="button" class="btn-confirmer-achat" (click)="fermerModalAchat()">
+            Fermer
+          </button>
+        </div>
+      </ng-container>
+
+    </div>
+  </div>
+</div>

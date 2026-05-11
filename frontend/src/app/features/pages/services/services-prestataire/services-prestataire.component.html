@@ -1,0 +1,312 @@
+<div class="services-prestataire-page">
+  <section class="hero-section">
+    <div class="hero-overlay"></div>
+
+    <div class="hero-shell">
+      <div class="hero-intro">
+        <span class="eyebrow">Gestion de mes services</span>
+        <h1>Mes demandes reçues</h1>
+        <p>Consultez, acceptez ou refusez les demandes de service qui vous sont adressées par vos clients.</p>
+      </div>
+
+      <div class="dashboard-card">
+        <div class="toolbar">
+          <a routerLink="/services" class="btn-retour">← Retour au profil</a>
+
+          <div class="toolbar-badge">
+            {{ demandesFiltrees.length }} demande<span *ngIf="demandesFiltrees.length > 1">s</span>
+          </div>
+        </div>
+
+        <div class="top-grid">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon blue">📋</div>
+              <div class="stat-content">
+                <span class="stat-title">Demandes reçues</span>
+                <strong>{{ demandes.length }}</strong>
+                <small>Total</small>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon green">✅</div>
+              <div class="stat-content">
+                <span class="stat-title">Acceptées</span>
+                <strong>{{ compterStatut('ACCEPTEE') }}</strong>
+                <small>Confirmées</small>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon gold">⏳</div>
+              <div class="stat-content">
+                <span class="stat-title">En attente</span>
+                <strong>{{ compterStatut('EN_ATTENTE') }}</strong>
+                <small>À traiter</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="profil-mini-card">
+            <div class="profil-mini-avatar">
+              <img *ngIf="utilisateur?.photoProfil" [src]="getPhoto()" [alt]="utilisateur?.prenom">
+              <div *ngIf="!utilisateur?.photoProfil" class="avatar-initiales">
+                {{ utilisateur?.prenom?.[0] }}{{ utilisateur?.nom?.[0] }}
+              </div>
+            </div>
+
+            <div class="profil-mini-infos">
+              <h3>{{ utilisateur?.prenom }} {{ utilisateur?.nom }}</h3>
+              <p>Prestataire de services</p>
+              <div class="profil-contact">
+                <span>✉️ {{ utilisateur?.email }}</span>
+                <span *ngIf="utilisateur?.telephone">📞 {{ utilisateur?.telephone }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="chargement" class="state-box">Chargement...</div>
+
+        <div class="content-grid" *ngIf="!chargement">
+          <div class="table-zone">
+            <div class="filters-bar" *ngIf="demandes.length > 0">
+              <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input
+                  type="text"
+                  [(ngModel)]="recherche"
+                  (ngModelChange)="resetPagination()"
+                  placeholder="Rechercher par client, email, téléphone, ville, adresse ou demande"
+                />
+              </div>
+
+              <div class="date-filter-box">
+                <label for="filtreDate">Date</label>
+                <input
+                  id="filtreDate"
+                  type="date"
+                  [(ngModel)]="filtreDate"
+                  (ngModelChange)="resetPagination()"
+                />
+              </div>
+
+              <button class="btn-clear-filters" type="button" (click)="viderFiltres()">
+                Réinitialiser
+              </button>
+            </div>
+
+            <div *ngIf="demandes.length === 0" class="state-box">
+              Aucune demande reçue pour le moment.
+            </div>
+
+            <div *ngIf="demandes.length > 0 && demandesFiltrees.length === 0" class="state-box">
+              Aucune demande ne correspond à votre recherche.
+            </div>
+
+            <div class="table-wrapper" *ngIf="demandesFiltrees.length > 0">
+              <table class="table">
+                <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Date & heure</th>
+                  <th>Adresse</th>
+                  <th>Demande</th>
+                  <th>Statut</th>
+                  <th>Actions</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr *ngFor="let d of demandesPage">
+                  <td class="client-cell">
+                    <div class="client-wrap">
+                      <div class="client-avatar">
+                        {{ d.demandeurPrenom[0] }}{{ d.demandeurNom[0] }}
+                      </div>
+
+                      <div class="client-meta">
+                        <strong>{{ d.demandeurPrenom }} {{ d.demandeurNom }}</strong>
+                        <span>{{ d.demandeurEmail }}</span>
+                        <span *ngIf="d.demandeurTelephone">{{ d.demandeurTelephone }}</span>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    <div class="info-stack">
+                      <strong>📅 {{ d.dateService }}</strong>
+                      <span>🕒 {{ d.heureService }}</span>
+                    </div>
+                  </td>
+
+                  <td>
+                    <div class="info-stack">
+                      <strong>📍 {{ d.ville }}</strong>
+                      <span>{{ d.adresse }}</span>
+                    </div>
+                  </td>
+
+                  <td>
+                    <div class="info-stack">
+                      <strong>Service demandé</strong>
+                      <span>{{ d.probleme }}</span>
+                    </div>
+                  </td>
+
+                  <td>
+                      <span class="badge-statut" [ngClass]="getStatutClass(d.statut)">
+                        {{ statutLabel(d.statut) }}
+                      </span>
+                  </td>
+
+                  <td>
+                    <div class="actions-cell">
+                      <button class="btn-view" (click)="ouvrirDetail(d)">Voir</button>
+
+                      <button
+                        class="btn-accepter-inline"
+                        *ngIf="d.statut !== 'ACCEPTEE'"
+                        (click)="ouvrirDetail(d)">
+                        Accepter
+                      </button>
+
+                      <button
+                        class="btn-refuser-inline"
+                        *ngIf="d.statut !== 'REFUSEE'"
+                        (click)="ouvrirDetail(d)">
+                        Refuser
+                      </button>
+
+                      <button
+                        class="btn-appeler-demandeur"
+                        (click)="appelerDemandeur(d)"
+                        [disabled]="statutAppel !== 'INACTIF'"
+                        title="Appeler {{ d.demandeurPrenom }}">
+                        📞
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="pagination-bar" *ngIf="demandesFiltrees.length > 0">
+              <button class="btn-page" (click)="pagePrecedente()" [disabled]="pageActuelle === 1">
+                ← Précédent
+              </button>
+
+              <div class="pagination-info">
+                Page {{ pageActuelle }} / {{ totalPages }}
+              </div>
+
+              <button class="btn-page" (click)="pageSuivante()" [disabled]="pageActuelle === totalPages">
+                Suivant →
+              </button>
+            </div>
+          </div>
+
+          <aside class="aside-card" *ngIf="prochaineDemande">
+            <h3>Prochain rendez-vous</h3>
+
+            <div class="aside-icon">📅</div>
+
+            <div class="aside-date">{{ prochaineDemande.dateService }}</div>
+            <div class="aside-hour">{{ prochaineDemande.heureService }}</div>
+
+            <div class="aside-client">
+              {{ prochaineDemande.demandeurPrenom }} {{ prochaineDemande.demandeurNom }}
+            </div>
+
+            <div class="aside-problem">{{ prochaineDemande.probleme }}</div>
+
+            <button class="aside-link" (click)="ouvrirDetail(prochaineDemande)">
+              Voir le détail →
+            </button>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal-overlay" *ngIf="demandeSelectionnee" (click)="fermerDetail()">
+  <div class="modal-content demande-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title-wrap">
+        <span class="modal-eyebrow">Demande de service</span>
+        <h2>Détail de la demande</h2>
+      </div>
+      <button class="btn-fermer" (click)="fermerDetail()">✕</button>
+    </div>
+
+    <div class="modal-top-card">
+      <div class="client-identite">
+        <div class="client-avatar-large">
+          {{ demandeSelectionnee.demandeurPrenom[0] }}{{ demandeSelectionnee.demandeurNom[0] }}
+        </div>
+
+        <div class="client-identite-text">
+          <h3>{{ demandeSelectionnee.demandeurPrenom }} {{ demandeSelectionnee.demandeurNom }}</h3>
+          <p>{{ demandeSelectionnee.demandeurEmail }}</p>
+          <p *ngIf="demandeSelectionnee.demandeurTelephone">{{ demandeSelectionnee.demandeurTelephone }}</p>
+        </div>
+      </div>
+
+      <span class="badge-statut modal-badge" [ngClass]="demandeSelectionnee.statut.toLowerCase()">
+        {{ demandeSelectionnee.statut === 'EN_ATTENTE' ? '⏳ En attente'
+        : demandeSelectionnee.statut === 'ACCEPTEE' ? '✅ Acceptée'
+          : '❌ Refusée' }}
+      </span>
+    </div>
+
+    <div class="modal-grid">
+      <div class="modal-info-card">
+        <span class="info-label">📅 Date</span>
+        <strong>{{ demandeSelectionnee.dateService }}</strong>
+      </div>
+
+      <div class="modal-info-card">
+        <span class="info-label">🕒 Heure</span>
+        <strong>{{ demandeSelectionnee.heureService }}</strong>
+      </div>
+
+      <div class="modal-info-card full">
+        <span class="info-label">📍 Adresse</span>
+        <strong>{{ demandeSelectionnee.adresse }}, {{ demandeSelectionnee.ville }}</strong>
+      </div>
+
+      <div class="modal-info-card full">
+        <span class="info-label">🔧 Service demandé</span>
+        <p>{{ demandeSelectionnee.probleme }}</p>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+
+      <button
+        class="btn-appeler-modal"
+        (click)="appelerDemandeur(demandeSelectionnee!)"
+        [disabled]="statutAppel !== 'INACTIF'">
+        📞 Appeler {{ demandeSelectionnee!.demandeurPrenom }}
+      </button>
+      <button
+        *ngIf="demandeSelectionnee.statut !== 'REFUSEE'"
+        (click)="refuser()"
+        [disabled]="traitement"
+        class="btn-refuser">
+        ❌ {{ demandeSelectionnee.statut === 'ACCEPTEE' ? 'Annuler l’acceptation' : 'Refuser' }}
+      </button>
+
+      <button
+        *ngIf="demandeSelectionnee.statut !== 'ACCEPTEE'"
+        (click)="accepter()"
+        [disabled]="traitement"
+        class="btn-accepter">
+        ✅ {{ demandeSelectionnee.statut === 'REFUSEE' ? 'Changer d’avis et accepter' : 'Accepter' }}
+      </button>
+    </div>
+  </div>
+</div>

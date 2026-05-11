@@ -1,0 +1,123 @@
+<div class="mes-demandes-page">
+  <div class="page-header">
+    <h2>Mes demandes</h2>
+    <p>Suivez vos demandes de location, meubles et services.</p>
+  </div>
+
+  <div class="filters-block">
+    <div class="filter-group">
+      <button class="filter-btn" [class.active]="typeActif === 'location'" (click)="changerType('location')">
+        Location & colocation
+      </button>
+
+      <button class="filter-btn" [class.active]="typeActif === 'meubles'" (click)="changerType('meubles')">
+        Meubles
+      </button>
+
+      <button class="filter-btn" [class.active]="typeActif === 'services'" (click)="changerType('services')">
+        Services
+      </button>
+    </div>
+
+    <div class="filter-group secondary">
+      <button class="filter-chip" [class.active]="filtreLecture === 'toutes'" (click)="changerFiltreLecture('toutes')">
+        Toutes
+      </button>
+
+      <button class="filter-chip" [class.active]="filtreLecture === 'archives'"
+        (click)="changerFiltreLecture('archives')">
+        Archives
+      </button>
+
+      <button class="filter-chip" [class.active]="filtreLecture === 'brouillons'"
+        (click)="changerFiltreLecture('brouillons')">
+        Brouillons
+      </button>
+    </div>
+  </div>
+
+  <div class="table-box">
+    <ng-container *ngIf="typeActif === 'location'; else placeholderTypes">
+
+      <div *ngIf="loading" class="empty-state">
+        <h3>Chargement...</h3>
+      </div>
+
+      <div *ngIf="!loading && demandesFiltrees.length === 0" class="empty-state">
+        <h3>Aucune demande trouvée</h3>
+        <p>Il n’y a aucune demande correspondant à ce filtre.</p>
+      </div>
+
+      <div *ngIf="!loading && demandesFiltrees.length > 0" class="demandes-table">
+        <div class="table-head">
+          <div>Annonce</div>
+          <div>Date</div>
+          <div>Statut</div>
+          <div>Actions</div>
+        </div>
+
+        <div class="table-row" *ngFor="let demande of demandesFiltrees">
+          <div class="col-annonce clickable" (click)="ouvrirAnnonce(demande)">
+            <div class="annonce-title">{{ demande.annonceTitre }}</div>
+            <div class="annonce-subtitle">
+              {{ demande.annonceAdresse || demande.annonceVille || 'Adresse non précisée' }}
+            </div>
+          </div>
+
+          <div>
+            {{ demande.dateDemande | date:'shortDate' }}
+          </div>
+
+          <div>
+            <span class="statut-badge" [ngClass]="getStatutClass(demande.statutDemande)">
+              {{ getStatutLabel(demande.statutDemande) }}
+            </span>
+          </div>
+
+          <div class="actions-col">
+            <button class="table-btn contact-btn" *ngIf="filtreLecture !== 'archives'"
+              [disabled]="demande.statutDemande !== 'ACCEPTEE'"
+              (click)="contacterProprietaire(demande); $event.stopPropagation()">
+              Contacter
+            </button>
+
+            <button class="table-btn contrat-btn"
+              *ngIf="filtreLecture !== 'archives' && demande.statutDemande === 'ACCEPTEE'"
+              [disabled]="creerContratEnCours === demande.idDemande"
+              (click)="creerContratDepuisDemande(demande.idDemande); $event.stopPropagation()">
+              <span *ngIf="creerContratEnCours === demande.idDemande">⏳</span>
+              <span *ngIf="creerContratEnCours !== demande.idDemande">📄 Créer Contrat</span>
+            </button>
+
+            <button class="table-btn archive-btn" *ngIf="filtreLecture !== 'archives'"
+              (click)="archiverDemande(demande.idDemande); $event.stopPropagation()">
+              Archiver
+            </button>
+
+            <button class="table-btn restore-btn" *ngIf="filtreLecture === 'archives'"
+              (click)="desarchiverDemande(demande.idDemande); $event.stopPropagation()">
+              Désarchiver
+            </button>
+
+            <button class="table-btn pdf-btn" (click)="voirPdfDemande(demande.idDemande); $event.stopPropagation()">
+              PDF
+            </button>
+
+            <button class="table-btn delete-btn"
+              (click)="supprimerDemande(demande.idDemande); $event.stopPropagation()">
+              Supprimer
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #placeholderTypes>
+      <div class="empty-state">
+        <h3 *ngIf="typeActif === 'meubles'">Demandes meubles</h3>
+        <h3 *ngIf="typeActif === 'services'">Demandes services</h3>
+        <p>Le filtre est prêt. Le contenu sera branché plus tard.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

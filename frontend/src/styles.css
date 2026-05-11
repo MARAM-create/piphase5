@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Jost:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+/* Import Locavia Design System - MUST be before @tailwind */
+@import './app/shared/styles/locavia-theme.css';
+@import 'leaflet/dist/leaflet.css';
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap');
+@import '@ctrl/ngx-emoji-mart/picker';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+
+:root {
+  --forest:       #1a472a;
+  --forest-hover: #143820;
+  --forest-light: #eef4f0;
+  --forest-text:  #1a472a;
+  --forest-grad:  linear-gradient(135deg, #1a472a 0%, #1e5c34 100%);
+
+  --nude:         #f7f3ec;
+  --nude-card:    #fdfaf6;
+  --nude-border:  #e9e3d8;
+  --nude-input:   #f0ebe1;
+
+
+
+
+
+  --white:        #ffffff;
+  --ink:          #18180f;
+  --ink-60:       #6e6e62;
+  --ink-30:       #b5b5aa;
+
+  --green-badge:        #eef4f0;
+  --green-badge-text:   #1e5c34;
+  --green-badge-border: #c2d9c9;
+
+  --radius-xl:   18px;
+  --radius-lg:   13px;
+  --radius-md:   9px;
+  --radius-sm:   6px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 1px 3px rgba(26, 71, 42, .06), 0 4px 16px rgba(26, 71, 42, .07);
+  --ease:        160ms cubic-bezier(.4, 0, .2, 1);
+  --font:        'DM Sans', system-ui, sans-serif;
+
+}
+
+body {
+  font-family: 'Jost', sans-serif;
+  background: var(--white);
+    padding-top: 70px;
+
+}

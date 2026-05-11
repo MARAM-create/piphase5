@@ -1,0 +1,1086 @@
+<div class="proprietaire-page">
+
+  <!-- ══ NOTIFICATION PROFIL INCOMPLET ══ -->
+  <div *ngIf="champsManquants.length > 0 && !notifProfilFermee && onglet !== 'profil'"
+    style="margin-bottom:24px;border-radius:20px;border:1px solid rgba(251,191,36,0.35);
+           background:linear-gradient(135deg,rgba(255,251,235,0.97),rgba(254,243,199,0.95));
+           box-shadow:0 4px 24px rgba(251,191,36,0.12)">
+    <div style="padding:20px 24px">
+      <div style="display:flex;align-items:flex-start;gap:16px">
+        <div style="flex-shrink:0;width:52px;height:52px;border-radius:16px;
+                    background:linear-gradient(135deg,#f59e0b,#fbbf24);
+                    display:flex;align-items:center;justify-content:center;font-size:26px;
+                    box-shadow:0 4px 14px rgba(251,191,36,0.4)">⚠️</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px">
+            <div>
+              <h4 style="font-size:15px;font-weight:900;color:#92400e;margin:0 0 2px">Profil incomplet</h4>
+              <p style="font-size:12px;color:#b45309;margin:0">Certains champs requis sont manquants</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;margin-left:16px">
+              <div style="background:#fff;border-radius:100px;padding:4px 14px;border:1px solid rgba(251,191,36,0.4)">
+                <span style="font-size:13px;font-weight:900;color:#d97706">{{profilCompletude}}%</span>
+              </div>
+              <button (click)="notifProfilFermee=true"
+                style="width:28px;height:28px;border-radius:8px;border:none;cursor:pointer;
+                       background:rgba(251,191,36,0.2);color:#92400e;font-size:18px;
+                       display:flex;align-items:center;justify-content:center">×</button>
+            </div>
+          </div>
+          <div style="width:100%;height:6px;background:rgba(251,191,36,0.2);border-radius:100px;margin-bottom:14px">
+            <div style="height:6px;border-radius:100px;transition:width .5s;background:linear-gradient(90deg,#f59e0b,#fbbf24)"
+                 [style.width]="profilCompletude+'%'"></div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+            <span style="font-size:11px;color:#92400e;font-weight:700">Compléter :</span>
+            <button *ngFor="let champ of champsManquants"
+              (click)="onglet='profil'; sousOnglet=champ.sousTab"
+              style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:100px;
+                     border:1.5px solid rgba(251,191,36,0.45);background:rgba(255,255,255,0.8);
+                     font-size:12px;font-weight:700;color:#92400e;cursor:pointer">
+              {{champ.icone}} {{champ.label}} →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div
+    class="decision-toast"
+    *ngIf="toastDecision.visible"
+    [ngClass]="toastDecision.type">
+    <div class="decision-toast-icon">
+      <span *ngIf="toastDecision.type === 'success'">✓</span>
+      <span *ngIf="toastDecision.type === 'error'">!</span>
+      <span *ngIf="toastDecision.type === 'info'">i</span>
+    </div>
+
+    <div class="decision-toast-content">
+      <strong>{{ toastDecision.title }}</strong>
+      <p>{{ toastDecision.message }}</p>
+    </div>
+
+    <button type="button" class="decision-toast-close" (click)="fermerToastDecision()">
+      ×
+    </button>
+  </div>
+  <!-- ════════════════════════════════════════════════════════
+       ONGLET : DEMANDES PROPRIÉTAIRE
+  ════════════════════════════════════════════════════════ -->
+  <div *ngIf="onglet === 'demandes'" class="demandes-page">
+
+    <section class="demandes-header-card">
+      <div class="demandes-page-intro">
+        <div>
+          <h2>Demandes de location reçues</h2>
+          <p>Consultez, filtrez et gérez les demandes envoyées par les étudiants.</p>
+        </div>
+
+        <div class="demandes-mini-stat" *ngIf="!isLoadingDemandes">
+          <span>{{ demandesRecuesFiltrees.length }}</span>
+          <small>demande(s)</small>
+        </div>
+      </div>
+      <div class="filters-row">
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="filtreLectureDemande === 'toutes'"
+          (click)="filtreLectureDemande = 'toutes'; appliquerFiltresDemandes()">
+          Toutes
+        </button>
+
+        <button
+          type="button"
+          class="filter-chip"
+          [class.active]="filtreLectureDemande === 'archives'"
+          (click)="filtreLectureDemande = 'archives'; appliquerFiltresDemandes()">
+          Archives
+        </button>
+
+        <input
+          *ngIf="typeDemandeActif === 'location'"
+          type="text"
+          class="filter-control search-control"
+          [(ngModel)]="rechercheDemande"
+          (ngModelChange)="appliquerFiltresDemandes()"
+          placeholder="Recherche selon étudiant" />
+
+        <select
+          *ngIf="typeDemandeActif === 'location'"
+          class="filter-control"
+          [(ngModel)]="filtreStatutDemande"
+          (ngModelChange)="appliquerFiltresDemandes()">
+          <option value="TOUTES">Tous les statuts</option>
+          <option value="EN_ATTENTE">En attente</option>
+          <option value="ACCEPTEE">Acceptées</option>
+          <option value="REFUSEE">Refusées</option>
+        </select>
+
+        <div *ngIf="typeDemandeActif === 'location'" class="date-filter-wrap">
+          <label for="dateFiltre">Date de demande</label>
+          <input
+            id="dateFiltre"
+            type="date"
+            class="filter-control"
+            [(ngModel)]="dateFiltre"
+            (ngModelChange)="appliquerFiltresDemandes()" />
+        </div>
+      </div>
+    </section>
+
+    <ng-container *ngIf="typeDemandeActif === 'location'; else autresTableaux">
+      <section *ngIf="isLoadingDemandes" class="state-card">
+        <h4>Chargement des demandes...</h4>
+        <p>Veuillez patienter quelques secondes.</p>
+      </section>
+
+      <section *ngIf="!isLoadingDemandes && hasErrorDemandes" class="state-card">
+        <h4>Impossible de charger les demandes</h4>
+        <p>Une erreur s’est produite côté serveur ou côté réseau.</p>
+      </section>
+
+      <section
+        *ngIf="!isLoadingDemandes && !hasErrorDemandes && demandesRecuesFiltrees.length === 0"
+        class="state-card">
+        <h4>Aucune demande trouvée</h4>
+        <p>Aucune demande ne correspond au filtre actuel.</p>
+      </section>
+
+      <section
+        *ngIf="!isLoadingDemandes && !hasErrorDemandes && demandesRecuesFiltrees.length > 0"
+        class="table-card">
+        <div class="table-head">
+          <div>Demandeur</div>
+          <div>Annonce / besoin</div>
+          <div>Préférence visite</div>
+          <div>Statut demande</div>
+          <div>Statut visite</div>
+          <div>Actions</div>
+        </div>
+
+        <div class="table-row" *ngFor="let demande of demandesRecuesFiltrees">
+          <div class="cell clickable" (click)="ouvrirProfilEtudiant(demande)">
+            <div class="cell-title">{{ getNomEtudiant(demande) }}</div>
+            <div class="cell-sub">{{ demande.emailEtudiant || 'Email non renseigné' }}</div>
+            <div class="cell-sub">{{ demande.telephoneEtudiant || 'Téléphone non renseigné' }}</div>
+          </div>
+
+          <div class="cell clickable" (click)="ouvrirAnnonceDepuisDemande(demande)">
+            <div class="cell-title">{{ demande.annonceTitre || 'Annonce' }}</div>
+            <div class="cell-sub">{{ demande.annonceAdresse || demande.annonceVille || 'Adresse non précisée' }}</div>
+            <div class="cell-sub">
+              {{ demande.nombrePersonnes || 1 }} personne(s)
+              <span *ngIf="demande.budget">· Budget max {{ demande.budget }} DT</span>
+            </div>
+          </div>
+
+          <div class="cell">
+            <span [class]="getVisiteBadgeClass(demande)">
+              <span class="visit-icon">{{ getVisiteIcon(demande) }}</span>
+              {{ getResumeVisite(demande) }}
+            </span>
+            <div class="cell-sub visit-moment">{{ demande.momentVisite || 'Moment non précisé' }}</div>
+          </div>
+
+          <div class="cell">
+            <span class="status-pill" [ngClass]="getStatutDemandeClass(demande.statutDemande)">
+              {{ getStatutDemandeLabel(demande.statutDemande) }}
+            </span>
+          </div>
+
+          <div class="cell">
+            <span [class]="getStatutVisiteClasseDemande(demande)">
+              {{ getStatutVisiteAffiche(demande) }}
+            </span>
+          </div>
+
+          <div class="cell">
+            <div class="actions-wrap">
+              <button
+                type="button"
+                class="action-btn action-primary"
+                (click)="ouvrirDetailDemande(demande)">
+                Consulter
+              </button>
+
+              <button
+                *ngIf="!demande.archive"
+                type="button"
+                class="action-btn action-soft"
+                (click)="archiverDemandeProprietaire(demande)">
+                Archiver
+              </button>
+
+              <button
+                *ngIf="demande.archive"
+                type="button"
+                class="action-btn action-soft"
+                (click)="desarchiverDemandeProprietaire(demande)">
+                Désarchiver
+              </button>
+
+              <button
+                type="button"
+                class="action-btn action-danger"
+                (click)="supprimerDemandeProprietaire(demande)">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </ng-container>
+
+    <ng-template #autresTableaux>
+      <section class="state-card">
+        <h4>Module {{ typeDemandeActif }}</h4>
+        <p>Le tableau de ce module sera branché juste après.</p>
+      </section>
+    </ng-template>
+
+    <!-- Drawer demandes/profil étudiant -->
+    <div class="drawer-backdrop" [class.open]="drawerOuvert" (click)="fermerDrawer()"></div>
+
+    <aside class="drawer-panel" [class.open]="drawerOuvert">
+      <div class="drawer-header">
+        <h3 *ngIf="drawerType === 'demande'">Détail de la demande</h3>
+        <h3 *ngIf="drawerType === 'profil'">Profil du demandeur</h3>
+        <button type="button" class="drawer-close" (click)="fermerDrawer()">×</button>
+      </div>
+
+      <div class="drawer-body">
+        <ng-container *ngIf="drawerType === 'profil' && profilEtudiantSelectionne as p">
+          <div class="drawer-avatar">
+            {{ (p.nomComplet || 'U').charAt(0) }}
+          </div>
+
+          <h4 class="drawer-name">{{ p.nomComplet }}</h4>
+
+          <div class="drawer-meta">
+            {{ p.email || 'Email non renseigné' }}<br />
+            {{ p.telephone || 'Téléphone non renseigné' }}
+          </div>
+
+          <div class="drawer-section">
+            <h5>Profil étudiant</h5>
+
+            <div class="drawer-item" *ngIf="p.etablissement">
+              <div class="drawer-label">Établissement</div>
+              <div class="drawer-value">{{ p.etablissement }}</div>
+            </div>
+
+            <div class="drawer-item" *ngIf="p.niveauEtude">
+              <div class="drawer-label">Niveau d’étude</div>
+              <div class="drawer-value">{{ p.niveauEtude }}</div>
+            </div>
+
+            <div class="drawer-item" *ngIf="p.specialite">
+              <div class="drawer-label">Spécialité</div>
+              <div class="drawer-value">{{ p.specialite }}</div>
+            </div>
+
+            <div class="drawer-item" *ngIf="p.universite">
+              <div class="drawer-label">Université</div>
+              <div class="drawer-value">{{ p.universite }}</div>
+            </div>
+
+            <div class="drawer-item" *ngIf="p.ville">
+              <div class="drawer-label">Ville</div>
+              <div class="drawer-value">{{ p.ville }}</div>
+            </div>
+
+            <div class="drawer-item" *ngIf="p.bio">
+              <div class="drawer-label">Bio</div>
+              <div class="drawer-value">{{ p.bio }}</div>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="drawerType === 'demande' && demandeSelectionnee as d">
+          <div class="drawer-avatar">
+            {{ getInitialesDemande(d) }}
+          </div>
+
+          <h4 class="drawer-name">{{ getNomEtudiant(d) }}</h4>
+
+          <div class="drawer-meta">
+            {{ d.emailEtudiant || 'Email non renseigné' }}<br />
+            {{ d.telephoneEtudiant || 'Téléphone non renseigné' }}
+          </div>
+
+          <div class="drawer-section">
+
+
+
+          </div>
+
+          <div class="drawer-section">
+            <h5>Résumé</h5>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Annonce</div>
+              <div class="drawer-value">{{ d.annonceTitre || '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Adresse</div>
+              <div class="drawer-value">{{ d.annonceAdresse || d.annonceVille || '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Date de demande</div>
+              <div class="drawer-value">{{ d.dateDemande ? (d.dateDemande | date:'mediumDate') : '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Statut</div>
+              <div class="drawer-value">{{ getStatutDemandeLabel(d.statutDemande) }}</div>
+            </div>
+          </div>
+
+          <div class="drawer-section">
+            <h5>Besoin locatif</h5>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Ville actuelle</div>
+              <div class="drawer-value">{{ d.villeActuelle || '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Critère principal</div>
+              <div class="drawer-value">{{ d.criterePrincipal || '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Remarque logement</div>
+              <div class="drawer-value">{{ d.remarqueLogement || '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Nombre de personnes</div>
+              <div class="drawer-value">{{ d.nombrePersonnes || '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Budget maximum</div>
+              <div class="drawer-value">{{ d.budget ? (d.budget + ' DT') : '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Date d’entrée</div>
+              <div class="drawer-value">{{ d.dateEntree ? (d.dateEntree | date:'mediumDate') : '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Durée souhaitée</div>
+              <div class="drawer-value">{{ d.dureeLocation || '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Besoin principal</div>
+              <div class="drawer-value">{{ d.besoinPrincipal || '—' }}</div>
+            </div>
+          </div>
+
+          <div class="drawer-section">
+            <h5>Visite</h5>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Préférence visite</div>
+              <div class="drawer-value">{{ getVisiteIcon(d) }} {{ getResumeVisite(d) }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Moment préféré</div>
+              <div class="drawer-value">{{ d.momentVisite || '—' }}</div>
+            </div>
+          </div>
+
+          <div class="drawer-section">
+            <h5>Disponibilités</h5>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Date souhaitée</div>
+              <div class="drawer-value">{{ d.dateSouhaitee ? (d.dateSouhaitee | date:'mediumDate') : '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Jours disponibles</div>
+              <div class="drawer-value">{{ d.joursDisponibles || '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Plage horaire</div>
+              <div class="drawer-value">{{ d.plageHoraire || '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Préférence semaine</div>
+              <div class="drawer-value">{{ d.preferenceSemaine || '—' }}</div>
+            </div>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Remarque disponibilité</div>
+              <div class="drawer-value">{{ d.remarqueDisponibilite || '—' }}</div>
+            </div>
+          </div>
+
+          <div class="drawer-section">
+            <h5>Message candidat</h5>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Message final</div>
+              <div class="drawer-value">{{ d.messageCandidat || '—' }}</div>
+            </div>
+          </div>
+
+          <div class="drawer-section">
+            <h5>Message candidat</h5>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Message final</div>
+              <div class="drawer-value">{{ d.messageCandidat || '—' }}</div>
+            </div>
+          </div>
+
+          <div class="drawer-section">
+            <h5>Décision propriétaire</h5>
+
+            <div class="drawer-item">
+              <div class="drawer-label">Statut actuel</div>
+              <div class="drawer-value">
+                <span class="status-pill" [ngClass]="getStatutDemandeClass(d.statutDemande)">
+                  {{ getStatutDemandeLabel(d.statutDemande) }}
+                </span>
+              </div>
+            </div>
+
+            <div class="drawer-actions-grid">
+              <button
+                type="button"
+                class="drawer-action-btn success"
+                (click)="accepterDemande(d)">
+                Accepter
+              </button>
+
+              <button
+                type="button"
+                class="drawer-action-btn danger"
+                (click)="refuserDemande(d)">
+                Refuser
+              </button>
+            </div>
+
+            <div class="drawer-item" *ngIf="messageDecisionDemande">
+              <div class="drawer-label">Message</div>
+              <div class="drawer-value">{{ messageDecisionDemande }}</div>
+            </div>
+          </div>
+
+          <div class="drawer-section">
+            <h5>Prochaines actions</h5>
+
+            <div class="drawer-actions-grid">
+              <button
+                type="button"
+                class="big-btn primary"
+                [disabled]="estDirectDesactive(d)"
+                (click)="proposerVisite(d)">
+                Proposer
+              </button>
+
+              <button
+                type="button"
+                class="big-btn secondary"
+                [disabled]="estVideoDesactive(d)"
+                (click)="envoyerVideo(d)">
+                Envoyer une vidéo
+              </button>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       ONGLET : MES CONTRATS
+  ════════════════════════════════════════════════════════ -->
+  <div *ngIf="onglet === 'contrats'" class="dp-tab-page">
+    <div class="dp-top-bar">
+      <div class="dp-search-wrap">
+        <svg class="dp-search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+
+        <input
+          id="dp-search-contrats"
+          class="dp-search"
+          type="text"
+          placeholder="Rechercher par locataire ou titre du bien…"
+          [(ngModel)]="rechercheContrat"
+          (input)="appliquerFiltreContrats()" />
+
+        <button
+          *ngIf="rechercheContrat"
+          type="button"
+          class="dp-clear"
+          (click)="rechercheContrat = ''; appliquerFiltreContrats()">
+          ✕
+        </button>
+      </div>
+
+      <div class="dp-stat-pill" *ngIf="!isLoadingContrats">
+        <span class="dp-stat-label">Total encaissé</span>
+        <span class="dp-stat-val">{{ formatMontant(totalGeneralPaye) }}</span>
+      </div>
+    </div>
+
+    <div class="dp-state" *ngIf="isLoadingContrats">
+      <div class="dp-spinner"></div>
+      <p>Chargement des contrats…</p>
+    </div>
+
+    <div class="dp-error" *ngIf="hasErrorContrats && !isLoadingContrats">
+      ⚠️ Impossible de charger les contrats actifs.
+    </div>
+
+    <div class="dp-state" *ngIf="!isLoadingContrats && !hasErrorContrats && contratsFiltres.length === 0">
+      <p class="dp-empty-icon">📄</p>
+      <h4>Aucun contrat actif</h4>
+      <p *ngIf="rechercheContrat; else aucunContratSansRecherche">
+        Aucun résultat pour « {{ rechercheContrat }} ».
+      </p>
+      <ng-template #aucunContratSansRecherche>
+        <p>Vous n'avez pas de contrat actif pour le moment.</p>
+      </ng-template>
+    </div>
+
+    <div class="dp-split" *ngIf="!isLoadingContrats && !hasErrorContrats && contratsFiltres.length > 0">
+      <div class="dp-list">
+        <div
+          class="dp-contrat-card"
+          *ngFor="let c of contratsFiltres"
+          [class.dp-contrat-card--sel]="contratSelectionne?.id === c.id"
+          (click)="selectionnerContrat(c)"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="selectionnerContrat(c)">
+          <div class="dp-cc-left">
+            <div class="dp-cc-avatar">{{ getInitialesContrat(c.locataireFullName) }}</div>
+
+            <div class="dp-cc-info">
+              <p class="dp-cc-name">{{ c.locataireFullName }}</p>
+              <p class="dp-cc-prop">{{ c.annonceTitre }}</p>
+              <p class="dp-cc-dates">
+                {{ formatDateContrat(c.dateDebut) }} → {{ formatDateContrat(c.dateFin) }}
+              </p>
+            </div>
+          </div>
+
+          <div class="dp-cc-right">
+            <span
+              class="dp-badge"
+              [class.dp-badge--success]="!!c.imageScanneUrl"
+              [class.dp-badge--warning]="!c.imageScanneUrl">
+              {{ c.imageScanneUrl ? '✅ Signé' : '⏳ En attente' }}
+            </span>
+
+            <button
+              type="button"
+              class="dp-del-btn"
+              title="Résilier"
+              (click)="ouvrirConfirmationContrat(c.id, $event)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                <path d="M10 11v6M14 11v6" />
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="dp-detail" *ngIf="contratSelectionne">
+        <div class="dp-detail-hd">
+          <div>
+            <h3>Contrat #{{ contratSelectionne.id }}</h3>
+            <p>{{ contratSelectionne.annonceTitre }}</p>
+          </div>
+
+          <button type="button" class="dp-detail-close" (click)="contratSelectionne = null">✕</button>
+        </div>
+
+        <div class="dp-detail-section">
+          <h4 class="dp-ds-title">📄 Détails du contrat</h4>
+
+          <div class="dp-info-grid">
+            <div class="dp-info-item">
+              <span class="dp-info-label">Locataire</span>
+              <span class="dp-info-value">{{ contratSelectionne.locataireFullName }}</span>
+            </div>
+
+            <div class="dp-info-item">
+              <span class="dp-info-label">Période</span>
+              <span class="dp-info-value">
+                {{ formatDateContrat(contratSelectionne.dateDebut) }} au
+                {{ formatDateContrat(contratSelectionne.dateFin) }}
+              </span>
+            </div>
+
+            <div class="dp-info-item">
+              <span class="dp-info-label">Statut</span>
+              <span
+                class="dp-badge"
+                [class.dp-badge--success]="!!contratSelectionne.imageScanneUrl"
+                [class.dp-badge--warning]="!contratSelectionne.imageScanneUrl">
+                {{ contratSelectionne.imageScanneUrl ? '✅ Signé' : '⏳ En attente' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dp-detail-ph dp-detail-ph--finance">
+          <p>Les informations financières sont gérées par l'administration.</p>
+        </div>
+      </div>
+
+      <div class="dp-detail-ph" *ngIf="!contratSelectionne">
+        <span>👆</span>
+        <p>Sélectionnez un contrat pour afficher les détails.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       ONGLET : MON PROFIL
+  ════════════════════════════════════════════════════════ -->
+  <div *ngIf="onglet === 'profil'" style="max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:24px">
+
+    <!-- Sous-onglets -->
+    <div style="display:flex;gap:8px;background:#fff;border-radius:20px;padding:8px;width:fit-content;margin:0 auto;border:1px solid #e8f0ea">
+      <button *ngFor="let s of sousOnglets" (click)="sousOnglet=s.cle"
+        style="padding:10px 20px;border-radius:14px;font-size:13px;font-weight:700;border:none;cursor:pointer;transition:all .2s"
+        [style.background]="sousOnglet===s.cle ? '#1a5c2a' : 'transparent'"
+        [style.color]="sousOnglet===s.cle ? '#fff' : '#6b7280'">
+        {{s.icone}} {{s.libelle}}
+      </button>
+    </div>
+
+    <!-- ── PHOTO ── -->
+    <div *ngIf="sousOnglet==='photo'"
+      style="position:relative;border-radius:28px;overflow:hidden;min-height:520px;display:flex;align-items:center;justify-content:center">
+      <video autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(8px) brightness(0.48);transform:scale(1.1);z-index:0">
+        <source src="assets/videos/2.mp4" type="video/mp4">
+      </video>
+      <div style="position:absolute;inset:0;z-index:1;background:linear-gradient(135deg,rgba(5,30,15,0.75) 0%,rgba(0,0,0,0.3) 100%)"></div>
+      <div style="position:relative;z-index:2;width:calc(100% - 80px);margin:40px auto;background:rgba(255,255,255,0.10);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border:1px solid rgba(255,255,255,0.18);border-radius:24px;box-shadow:0 32px 80px rgba(0,0,0,0.35);padding:40px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:32px">
+          <div style="width:50px;height:50px;border-radius:16px;flex-shrink:0;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:26px">📷</div>
+          <div>
+            <h3 style="color:#fff;font-size:20px;font-weight:900;margin:0">Photo de profil</h3>
+            <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:4px 0 0">Votre identité visuelle sur Locavia</p>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px;flex-shrink:0">
+            <span style="background:rgba(220,38,38,0.18);color:#fca5a5;border:1px solid rgba(220,38,38,0.3);padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700">Obligatoire</span>
+            <span style="background:rgba(124,58,237,0.18);color:#c4b5fd;border:1px solid rgba(124,58,237,0.3);padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700">🤖 IA</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:28px">
+          <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:10px">
+            <div style="width:148px;height:148px;border-radius:24px;overflow:hidden;border:3px solid;transition:border-color .3s;box-shadow:0 16px 40px rgba(0,0,0,0.4)"
+                 [style.border-color]="(utilisateur?.photoProfil || previewUrl) && !photoImgEchoue ? 'rgba(74,222,128,0.7)' : 'rgba(255,255,255,0.2)'">
+              <img *ngIf="(previewUrl || utilisateur?.photoProfil) && !photoImgEchoue" [src]="previewUrl || utilisateur?.photoProfil" style="width:100%;height:100%;object-fit:cover" (error)="photoImgEchoue=true">
+              <div *ngIf="(!previewUrl && !utilisateur?.photoProfil) || photoImgEchoue" style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,0.04)">
+                <span style="font-size:48px">👤</span>
+                <p style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:8px">Aucune photo</p>
+              </div>
+            </div>
+            <div *ngIf="utilisateur?.photoProfil && !photoImgEchoue" style="padding:5px 14px;border-radius:100px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3)">
+              <span style="font-size:11px;font-weight:700;color:#4ade80">✓ Vérifiée</span>
+            </div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="border:2px dashed;border-radius:20px;padding:32px 20px;text-align:center;cursor:pointer;transition:all .2s"
+                 [style.border-color]="isDragging ? '#4ade80' : 'rgba(255,255,255,0.22)'"
+                 [style.background]="isDragging ? 'rgba(74,222,128,0.08)' : 'rgba(255,255,255,0.04)'"
+                 (dragover)="onDragOver($event)" (dragleave)="isDragging=false" (drop)="onDrop($event)" (click)="fileInput.click()">
+              <div style="width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.12);margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:26px">☁️</div>
+              <p style="font-weight:700;font-size:15px;color:#fff;margin:0 0 6px">Glissez votre photo ici</p>
+              <p style="font-size:12px;color:rgba(255,255,255,0.45);margin:0 0 4px">ou cliquez pour choisir</p>
+              <p style="font-size:11px;color:rgba(255,255,255,0.28);margin:0">JPG · PNG · WebP · Max 5MB</p>
+            </div>
+            <input #fileInput type="file" accept="image/jpeg,image/png,image/webp" style="display:none" (change)="onFichierChoisi($event)">
+            <div *ngIf="uploadEnCours" style="margin-top:16px">
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:8px"><span>Envoi en cours...</span><span>{{progression}}%</span></div>
+              <div style="width:100%;border-radius:100px;height:5px;background:rgba(255,255,255,0.1)">
+                <div style="height:5px;border-radius:100px;transition:width .3s;background:linear-gradient(90deg,#166534,#22c55e)" [style.width]="progression+'%'"></div>
+              </div>
+            </div>
+            <div *ngIf="erreurPhoto" style="margin-top:12px;padding:12px 16px;border-radius:14px;font-size:13px;background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.3);color:#fca5a5">⚠️ {{erreurPhoto}}</div>
+            <div *ngIf="succesPhoto" style="margin-top:12px;padding:12px 16px;border-radius:14px;font-size:13px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:#4ade80">✅ {{succesPhoto}}</div>
+            <div style="display:flex;gap:10px;margin-top:16px">
+              <button *ngIf="fichierSelectionne && !uploadEnCours" (click)="uploaderPhoto()"
+                style="flex:1;padding:14px 20px;border-radius:16px;font-size:14px;font-weight:700;color:#fff;border:none;cursor:pointer;background:linear-gradient(135deg,#166534,#22c55e);box-shadow:0 8px 24px rgba(34,197,94,0.35)">
+                📤 Envoyer la photo
+              </button>
+            </div>
+            <p style="font-size:11px;color:rgba(255,255,255,0.35);text-align:center;margin-top:12px">🤖 Analysée par IA · Visage humain requis</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── IDENTITÉ ── -->
+    <div *ngIf="sousOnglet==='infos'"
+      style="position:relative;border-radius:28px;overflow:hidden;min-height:520px;display:flex;align-items:center;justify-content:center">
+      <video autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(8px) brightness(0.48);transform:scale(1.1);z-index:0">
+        <source src="assets/videos/2.mp4" type="video/mp4">
+      </video>
+      <div style="position:absolute;inset:0;z-index:1;background:linear-gradient(135deg,rgba(5,30,15,0.75) 0%,rgba(0,0,0,0.3) 100%)"></div>
+      <div style="position:relative;z-index:2;width:calc(100% - 80px);margin:40px auto;background:rgba(255,255,255,0.10);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border:1px solid rgba(255,255,255,0.18);border-radius:24px;box-shadow:0 32px 80px rgba(0,0,0,0.35);padding:40px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:32px">
+          <div style="width:50px;height:50px;border-radius:16px;flex-shrink:0;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:26px">👤</div>
+          <div>
+            <h3 style="color:#fff;font-size:20px;font-weight:900;margin:0">Informations personnelles</h3>
+            <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:4px 0 0">Vos coordonnées et données d'identité</p>
+          </div>
+          <div style="margin-left:auto;flex-shrink:0">
+            <div style="width:72px;height:72px;border-radius:20px;overflow:hidden;border:3px solid rgba(255,255,255,0.25)">
+              <img *ngIf="utilisateur?.photoProfil && !photoImgEchoue" [src]="utilisateur?.photoProfil" style="width:100%;height:100%;object-fit:cover">
+              <div *ngIf="!utilisateur?.photoProfil || photoImgEchoue" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.08);font-size:32px">👤</div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!enEditionInfos">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+            <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:16px">
+              <p style="font-size:11px;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,0.45);margin:0 0 6px">Prénom</p>
+              <p style="font-weight:700;font-size:15px;color:#fff;margin:0">{{utilisateur?.prenom || '—'}}</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:16px">
+              <p style="font-size:11px;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,0.45);margin:0 0 6px">Nom</p>
+              <p style="font-weight:700;font-size:15px;color:#fff;margin:0">{{utilisateur?.nom || '—'}}</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:16px">
+              <p style="font-size:11px;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,0.45);margin:0 0 6px">Téléphone</p>
+              <p style="font-weight:700;font-size:15px;color:#fff;margin:0">{{utilisateur?.telephone || '—'}}</p>
+            </div>
+            <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:16px">
+              <p style="font-size:11px;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,0.45);margin:0 0 6px">Membre depuis</p>
+              <p style="font-weight:700;font-size:15px;color:#fff;margin:0">{{utilisateur?.creeLe | date:'MMMM yyyy'}}</p>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:16px;margin-bottom:20px">
+            <p style="font-size:11px;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,0.45);margin:0 0 6px">Bio</p>
+            <p style="font-size:14px;color:rgba(255,255,255,0.8);margin:0;line-height:1.5">{{utilisateur?.bio || '—'}}</p>
+          </div>
+          <button (click)="activerEditionInfos()" style="background:linear-gradient(135deg,#166534,#22c55e);color:#fff;padding:13px 28px;border-radius:14px;font-size:14px;font-weight:700;border:none;cursor:pointer;box-shadow:0 8px 24px rgba(34,197,94,0.35)">✏️ Modifier mes informations</button>
+        </div>
+        <div *ngIf="enEditionInfos" style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px">Prénom <span style="color:#f87171">*</span></label>
+              <input [(ngModel)]="editionInfos.prenom" style="width:100%;padding:12px 16px;border-radius:12px;font-size:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);color:#fff;outline:none;font-family:inherit;box-sizing:border-box" placeholder="Votre prénom">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px">Nom <span style="color:#f87171">*</span></label>
+              <input [(ngModel)]="editionInfos.nom" style="width:100%;padding:12px 16px;border-radius:12px;font-size:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);color:#fff;outline:none;font-family:inherit;box-sizing:border-box" placeholder="Votre nom">
+            </div>
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px">Téléphone <span style="color:#f87171">*</span></label>
+            <input [(ngModel)]="editionInfos.telephone" style="width:100%;padding:12px 16px;border-radius:12px;font-size:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);color:#fff;outline:none;font-family:inherit;box-sizing:border-box" placeholder="+216 XX XXX XXX">
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px">Bio</label>
+            <textarea [(ngModel)]="editionInfos.bio" rows="3" style="width:100%;padding:12px 16px;border-radius:12px;font-size:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);color:#fff;outline:none;font-family:inherit;resize:none;box-sizing:border-box" placeholder="Parlez un peu de vous..."></textarea>
+          </div>
+          <div *ngIf="erreurProfil" style="padding:12px 16px;border-radius:14px;font-size:13px;background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.3);color:#fca5a5">⚠️ {{erreurProfil}}</div>
+          <div style="display:flex;gap:12px">
+            <button (click)="sauvegarderInfos()" [disabled]="sauvegardEnCours" style="background:linear-gradient(135deg,#166534,#22c55e);color:#fff;padding:13px 28px;border-radius:14px;font-size:14px;font-weight:700;border:none;cursor:pointer;box-shadow:0 8px 24px rgba(34,197,94,0.35)">{{sauvegardEnCours ? '⏳ Sauvegarde...' : '💾 Sauvegarder'}}</button>
+            <button (click)="enEditionInfos=false" style="padding:13px 28px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7)">Annuler</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── BIENS ── -->
+    <div *ngIf="sousOnglet==='biens'"
+      style="position:relative;border-radius:28px;overflow:hidden;min-height:520px;display:flex;align-items:center;justify-content:center">
+      <video autoplay muted loop playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(8px) brightness(0.48);transform:scale(1.1);z-index:0">
+        <source src="assets/videos/2.mp4" type="video/mp4">
+      </video>
+      <div style="position:absolute;inset:0;z-index:1;background:linear-gradient(135deg,rgba(5,30,15,0.75) 0%,rgba(0,0,0,0.3) 100%)"></div>
+      <div style="position:relative;z-index:2;width:calc(100% - 80px);margin:40px auto;background:rgba(255,255,255,0.10);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border:1px solid rgba(255,255,255,0.18);border-radius:24px;box-shadow:0 32px 80px rgba(0,0,0,0.35);padding:40px">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:32px">
+          <div style="width:50px;height:50px;border-radius:16px;flex-shrink:0;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:26px">🏡</div>
+          <div>
+            <h3 style="color:#fff;font-size:20px;font-weight:900;margin:0">Mes biens immobiliers</h3>
+            <p style="color:rgba(255,255,255,0.5);font-size:12px;margin:4px 0 0">Informations sur votre patrimoine immobilier</p>
+          </div>
+          <div style="margin-left:auto;flex-shrink:0" *ngIf="!enEditionProprietaire">
+            <button (click)="enEditionProprietaire=true; copierVersEdit()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.85);padding:9px 20px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer">✏️ Modifier</button>
+          </div>
+        </div>
+        <div *ngIf="!enEditionProprietaire">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div *ngFor="let f of champsVueProprio" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:16px;display:flex;align-items:flex-start;gap:12px">
+              <span style="font-size:22px;line-height:1;margin-top:2px;flex-shrink:0">{{f.icone}}</span>
+              <div style="min-width:0">
+                <p style="font-size:11px;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,0.45);margin:0 0 4px">{{f.label}}</p>
+                <p style="font-weight:700;font-size:14px;color:#fff;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{f.valeur || '—'}}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="enEditionProprietaire" style="display:flex;flex-direction:column;gap:16px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px">Ville <span style="color:#f87171">*</span></label>
+              <input [(ngModel)]="profilEdit.ville" style="width:100%;padding:12px 16px;border-radius:12px;font-size:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);color:#fff;outline:none;font-family:inherit;box-sizing:border-box" placeholder="Ex: Tunis, Sfax...">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px">Code postal</label>
+              <input [(ngModel)]="profilEdit.codePostal" style="width:100%;padding:12px 16px;border-radius:12px;font-size:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);color:#fff;outline:none;font-family:inherit;box-sizing:border-box" placeholder="Ex: 1000">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px">N° Fiscal</label>
+              <input [(ngModel)]="profilEdit.numeroFiscal" style="width:100%;padding:12px 16px;border-radius:12px;font-size:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);color:#fff;outline:none;font-family:inherit;box-sizing:border-box" placeholder="Ex: 1234567A">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px">Nb propriétés</label>
+              <input [(ngModel)]="profilEdit.nbProprietes" type="number" style="width:100%;padding:12px 16px;border-radius:12px;font-size:14px;background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.2);color:#fff;outline:none;font-family:inherit;box-sizing:border-box" placeholder="Ex: 3">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:6px">Type de bien <span style="color:#f87171">*</span></label>
+              <select [(ngModel)]="profilEdit.typeBien" style="width:100%;padding:12px 16px;border-radius:12px;font-size:14px;background:rgba(30,50,35,0.85);border:1.5px solid rgba(255,255,255,0.2);color:#fff;outline:none;font-family:inherit;box-sizing:border-box;cursor:pointer">
+                <option value="" style="background:#1a3a20">Choisir...</option>
+                <option value="Appartement" style="background:#1a3a20">Appartement</option>
+                <option value="Maison" style="background:#1a3a20">Maison</option>
+                <option value="Studio" style="background:#1a3a20">Studio</option>
+                <option value="Villa" style="background:#1a3a20">Villa</option>
+                <option value="Local commercial" style="background:#1a3a20">Local commercial</option>
+              </select>
+            </div>
+          </div>
+          <div *ngIf="erreurProfil" style="padding:12px 16px;border-radius:14px;font-size:13px;background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.3);color:#fca5a5">⚠️ {{erreurProfil}}</div>
+          <div style="display:flex;gap:12px">
+            <button (click)="sauvegarderProfil()" [disabled]="sauvegardEnCours" style="background:linear-gradient(135deg,#166534,#22c55e);color:#fff;padding:13px 28px;border-radius:14px;font-size:14px;font-weight:700;border:none;cursor:pointer;box-shadow:0 8px 24px rgba(34,197,94,0.35)">{{sauvegardEnCours ? '⏳ Sauvegarde...' : '💾 Sauvegarder'}}</button>
+            <button (click)="enEditionProprietaire=false" style="padding:13px 28px;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7)">Annuler</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       ONGLET : MESSAGERIE
+  ════════════════════════════════════════════════════════ -->
+  <div *ngIf="onglet === 'messagerie'">
+    <app-messagerie></app-messagerie>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════
+       ONGLET : NOTIFICATIONS
+  ════════════════════════════════════════════════════════ -->
+  <div *ngIf="onglet === 'notifications'"
+    style="max-width:520px;margin:0 auto;background:#fff;border-radius:20px;
+           border:1px solid #e8f0ea;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid #f3f4f6">
+      <h2 style="font-size:18px;font-weight:900;color:#111827;margin:0">Notifications</h2>
+      <span *ngIf="champsManquants.length > 0" style="background:#dc2626;color:#fff;border-radius:100px;padding:2px 10px;font-size:12px;font-weight:700">{{champsManquants.length}}</span>
+    </div>
+    <div style="display:flex;gap:8px;padding:14px 24px;border-bottom:1px solid #f3f4f6">
+      <span style="padding:6px 18px;border-radius:100px;font-size:13px;font-weight:700;background:#1a5c2a;color:#fff;cursor:default">Tout</span>
+      <span style="padding:6px 18px;border-radius:100px;font-size:13px;font-weight:600;border:1.5px solid #e5e7eb;color:#6b7280;cursor:default">Non lues</span>
+    </div>
+    <div *ngIf="champsManquants.length === 0" style="padding:60px 24px;text-align:center">
+      <div style="font-size:52px;margin-bottom:14px">🎉</div>
+      <p style="font-size:15px;font-weight:700;color:#111827;margin:0 0 6px">Profil complet !</p>
+      <p style="font-size:13px;color:#6b7280;margin:0">Aucune notification pour le moment.</p>
+    </div>
+    <div *ngIf="champsManquants.length > 0">
+      <div style="padding:16px 24px 0;display:flex;align-items:center;gap:10px">
+        <div style="flex:1;height:5px;background:#f3f4f6;border-radius:100px;overflow:hidden">
+          <div style="height:5px;border-radius:100px;background:linear-gradient(90deg,#166534,#22c55e);transition:width .5s" [style.width]="profilCompletude+'%'"></div>
+        </div>
+        <span style="font-size:12px;font-weight:700;color:#6b7280;white-space:nowrap">{{profilCompletude}}% complété</span>
+      </div>
+      <div *ngFor="let champ of champsManquants; let last = last"
+        style="display:flex;align-items:center;gap:14px;padding:16px 24px"
+        [style.border-bottom]="last ? 'none' : '1px solid #f9fafb'">
+        <div style="width:46px;height:46px;border-radius:14px;background:#f0faf2;border:1px solid #bbf7d0;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">{{champ.icone}}</div>
+        <div style="flex:1;min-width:0">
+          <p style="font-size:14px;font-weight:700;color:#111827;margin:0 0 2px">{{champ.label}}</p>
+          <p style="font-size:12px;color:#9ca3af;margin:0">Information obligatoire manquante</p>
+        </div>
+        <button (click)="onglet='profil'; sousOnglet=champ.sousTab"
+          style="padding:7px 14px;border-radius:10px;border:none;cursor:pointer;font-size:12px;font-weight:700;color:#1a5c2a;background:#f0faf2;white-space:nowrap;flex-shrink:0">
+          Ajouter →
+        </button>
+      </div>
+    </div>
+    <div style="padding:16px 24px;border-top:1px solid #f3f4f6">
+      <button (click)="onglet='profil'; sousOnglet='photo'"
+        style="width:100%;padding:14px;border-radius:14px;border:none;cursor:pointer;font-size:14px;font-weight:700;color:#fff;background:linear-gradient(135deg,#166534,#22c55e);box-shadow:0 4px 16px rgba(34,197,94,0.25)">
+        Compléter mon profil
+      </button>
+    </div>
+  </div>
+
+  <!-- Modale confirmation suppression/résiliation contrat -->
+  <div class="dp-modal-bd" *ngIf="afficherConfirmationContrat" (click)="annulerSuppressionContrat()">
+    <div class="dp-modal" (click)="$event.stopPropagation()">
+      <div class="dp-modal-ico">⚠️</div>
+      <h3>Résilier ce contrat ?</h3>
+      <p>Cette action est irréversible. Le contrat #{{ idContratASupprimer }} sera supprimé définitivement.</p>
+
+      <div class="dp-modal-btns">
+        <button
+          type="button"
+          class="cancel-btn"
+          (click)="annulerSuppressionContrat()"
+          [disabled]="suppressionContratEnCours">
+          Annuler
+        </button>
+
+        <button
+          id="dp-btn-confirm-del"
+          type="button"
+          class="dp-del-confirm"
+          (click)="confirmerSuppressionContrat()"
+          [disabled]="suppressionContratEnCours">
+          {{ suppressionContratEnCours ? 'Suppression…' : '🗑️ Confirmer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale visite : proposer une visite en ligne / envoyer une vidéo -->
+  <div class="visite-modal-backdrop" *ngIf="modalVisiteOuverte" (click)="fermerModalVisite()"></div>
+
+  <div class="visite-modal" *ngIf="modalVisiteOuverte">
+    <div class="visite-modal-header">
+      <h3>{{ modeModalVisite === 'direct' ? 'Planifier la visite en ligne' : 'Envoyer une vidéo' }}</h3>
+      <button type="button" class="close-modal-btn" (click)="fermerModalVisite()">×</button>
+    </div>
+
+    <div class="visite-modal-body">
+      <div class="resume-mini">
+        <div>
+          <span>Demande</span>
+          <strong>#{{ formVisite.demandeId }}</strong>
+        </div>
+
+        <div>
+          <span>Annonce</span>
+          <strong>{{ demandeModalSelectionnee?.annonceTitre || 'Annonce' }}</strong>
+        </div>
+
+        <div>
+          <span>Étudiant</span>
+          <strong>
+            {{ demandeModalSelectionnee?.prenomEtudiant }} {{ demandeModalSelectionnee?.nomEtudiant }}
+          </strong>
+        </div>
+      </div>
+
+      <ng-container *ngIf="modeModalVisite === 'direct'">
+        <div class="auto-link-info">
+          Le lien Google Meet sera généré automatiquement après l’enregistrement de la visite.
+        </div>
+
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label>Date de visite</label>
+            <input type="date" [(ngModel)]="formVisite.dateVisite" [min]="minDateVisite" />
+            <small class="field-error" *ngIf="erreurDateVisite">{{ erreurDateVisite }}</small>
+          </div>
+
+          <div class="modal-form-group">
+            <label>Heure début</label>
+            <input type="time" [(ngModel)]="formVisite.heureDebut" />
+            <small class="field-error" *ngIf="erreurHeureDebut">{{ erreurHeureDebut }}</small>
+          </div>
+
+          <div class="modal-form-group">
+            <label>Heure fin</label>
+            <input type="time" [(ngModel)]="formVisite.heureFin" />
+            <small class="field-error" *ngIf="erreurHeureFin">{{ erreurHeureFin }}</small>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="modeModalVisite === 'video'">
+        <div class="video-source-switch">
+          <button
+            type="button"
+            [class.active]="sourceVideo === 'lien'"
+            (click)="sourceVideo = 'lien'; erreurVideo = ''">
+            Lien vidéo
+          </button>
+
+          <button
+            type="button"
+            [class.active]="sourceVideo === 'fichier'"
+            (click)="sourceVideo = 'fichier'; erreurVideo = ''">
+            Pièce jointe vidéo
+          </button>
+        </div>
+
+        <div class="modal-form-group" *ngIf="sourceVideo === 'lien'">
+          <label>Lien vidéo</label>
+          <input
+            type="text"
+            [(ngModel)]="formVisite.videoUrl"
+            placeholder="Collez le lien de la vidéo" />
+        </div>
+
+        <div class="modal-form-group" *ngIf="sourceVideo === 'fichier'">
+          <label>Importer une vidéo</label>
+          <input
+            type="file"
+            accept="video/*,.mp4,.mov,.avi,.webm,.mkv,.m4v"
+            (change)="onVideoFileSelected($event)" />
+
+          <small class="selected-file" *ngIf="nomVideoSelectionnee">
+            Fichier sélectionné : {{ nomVideoSelectionnee }}
+          </small>
+
+          <small class="helper-text">
+            Formats acceptés : mp4, mov, avi, webm, mkv — max {{ tailleMaxVideoMo }} Mo
+          </small>
+        </div>
+
+        <small class="field-error" *ngIf="erreurVideo">{{ erreurVideo }}</small>
+      </ng-container>
+
+      <div class="modal-form-group">
+        <label>Message</label>
+        <textarea
+          rows="4"
+          [(ngModel)]="formVisite.message"
+          placeholder="Ajoutez un message clair pour l’étudiant"></textarea>
+      </div>
+    </div>
+
+    <div class="visite-modal-footer">
+      <button type="button" class="cancel-btn" (click)="fermerModalVisite()">Annuler</button>
+
+      <button
+        type="button"
+        class="save-btn"
+        [disabled]="savingVisite"
+        (click)="enregistrerModalVisite()">
+        {{ savingVisite ? 'Enregistrement...' : (modeModalVisite === 'direct' ? 'Enregistrer la visite' : 'Envoyer la vidéo') }}
+      </button>
+
+      <small class="field-error" *ngIf="erreurVisite">{{ erreurVisite }}</small>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,189 @@
+<!-- ═══════════════════════════════════════════════════════════
+     ADMIN — SUIVI DES PAIEMENTS PLATEFORME (Groupé par client)
+═══════════════════════════════════════════════════════════ -->
+<div class="ap-page">
+
+  <!-- Header -->
+  <header class="ap-header">
+    <div class="ap-header-left">
+      <div>
+        <h1 class="ap-page-title">💳 Suivi des Paiements</h1>
+        <p class="ap-page-sub">Tableau de bord financier global · {{ paiementsFiltres.length }} transaction(s)</p>
+      </div>
+    </div>
+    <button class="ap-refresh-btn" (click)="chargerPaiements()">🔄 Actualiser</button>
+  </header>
+
+  <main class="ap-main">
+
+    <!-- Loading -->
+    <div class="ap-state" *ngIf="chargement">
+      <div class="ap-spinner"></div>
+      <p>Chargement des transactions…</p>
+    </div>
+
+    <!-- Error -->
+    <div class="ap-error" *ngIf="erreur && !chargement">⚠️ {{ erreur }}</div>
+
+    <ng-container *ngIf="!chargement && !erreur">
+
+      <!-- ── KPI Cards ── -->
+      <div class="ap-kpi-grid">
+
+        <div class="ap-kpi ap-kpi--main">
+          <div class="ap-kpi-icon">💰</div>
+          <div class="ap-kpi-body">
+            <p class="ap-kpi-label">Revenu total plateforme</p>
+            <p class="ap-kpi-value">{{ formatMontant(totalRevenuePlateforme) }}</p>
+            <p class="ap-kpi-sub">{{ countValide }} paiement(s) validé(s)</p>
+          </div>
+        </div>
+
+        <div class="ap-kpi ap-kpi--amber">
+          <div class="ap-kpi-icon">⏳</div>
+          <div class="ap-kpi-body">
+            <p class="ap-kpi-label">Transactions initiées</p>
+            <p class="ap-kpi-value ap-kpi-value--amber">{{ formatMontant(totalEnAttente) }}</p>
+            <p class="ap-kpi-sub">{{ countInitie }} en cours</p>
+          </div>
+        </div>
+
+        <div class="ap-kpi ap-kpi--red">
+          <div class="ap-kpi-icon">❌</div>
+          <div class="ap-kpi-body">
+            <p class="ap-kpi-label">Transactions échouées</p>
+            <p class="ap-kpi-value ap-kpi-value--red">{{ formatMontant(totalEchoue) }}</p>
+            <p class="ap-kpi-sub">{{ countEchoue }} échoué(s)</p>
+          </div>
+        </div>
+
+        <div class="ap-kpi ap-kpi--neutral">
+          <div class="ap-kpi-icon">📋</div>
+          <div class="ap-kpi-body">
+            <p class="ap-kpi-label">Total transactions</p>
+            <p class="ap-kpi-value ap-kpi-value--forest">{{ paiements.length }}</p>
+            <p class="ap-kpi-sub">Sur toute la plateforme</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── Transactions grouped by client ── -->
+      <div class="ap-section-card">
+        <div class="ap-section-hd">
+          <h2 class="ap-section-title">🧾 Historique des transactions</h2>
+          <span class="ap-section-count">{{ clientGroups.length }} client(s)</span>
+        </div>
+
+        <!-- Filters -->
+        <div class="ap-filters">
+          <div class="ap-search-wrap">
+            <svg class="ap-search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              id="ap-search"
+              class="ap-search"
+              type="text"
+              placeholder="Rechercher par client, bien, ID…"
+              [(ngModel)]="recherche"
+              (input)="appliquerFiltres()"
+            />
+          </div>
+
+          <select class="ap-select" [(ngModel)]="filtreStatut" (ngModelChange)="appliquerFiltres()">
+            <option *ngFor="let s of statutOptions" [value]="s.value">{{ s.label }}</option>
+          </select>
+
+          <div class="ap-month-wrap">
+            <label for="ap-mois">Mois</label>
+            <input
+              id="ap-mois"
+              type="month"
+              class="ap-select"
+              [(ngModel)]="filtreMois"
+              (ngModelChange)="appliquerFiltres()"
+            />
+          </div>
+
+          <button class="ap-reset-btn" (click)="reinitialiserFiltres()" title="Réinitialiser">↺</button>
+        </div>
+
+        <!-- Empty filtered -->
+        <div class="ap-empty-msg" *ngIf="clientGroups.length === 0">
+          Aucune transaction ne correspond aux filtres sélectionnés.
+        </div>
+
+        <!-- ── Grouped by client ── -->
+        <div class="ap-groups" *ngIf="clientGroups.length > 0">
+          <div class="ap-group" *ngFor="let group of clientGroups; trackBy: trackByClientId">
+
+            <!-- Client header -->
+            <div class="ap-group-header" (click)="toggleGroup(group)">
+              <div class="ap-group-left">
+                <div class="ap-group-avatar">{{ getInitiales(group.clientFullName) }}</div>
+                <div class="ap-group-info">
+                  <span class="ap-group-name">{{ group.clientFullName }}</span>
+                  <span class="ap-group-meta">{{ group.paiements.length }} transaction(s) · Total payé : {{ formatMontant(group.totalPaye) }}</span>
+                </div>
+              </div>
+              <div class="ap-group-right">
+                <span class="ap-group-total">{{ formatMontant(group.totalPaye) }}</span>
+                <span class="ap-group-chevron" [class.ap-group-chevron--open]="group.expanded">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </span>
+              </div>
+            </div>
+
+            <!-- Client transactions (collapsible) -->
+            <div class="ap-group-body" *ngIf="group.expanded">
+
+              <!-- Table header -->
+              <div class="ap-table-hd">
+                <div>#ID</div>
+                <div>Bien loué</div>
+                <div>Date paiement</div>
+                <div>Montant</div>
+                <div>Statut</div>
+                <div>Action</div>
+              </div>
+
+              <!-- Table rows -->
+              <div class="ap-table-row" *ngFor="let p of group.paiements; trackBy: trackById">
+                <div class="ap-tc ap-tc--id">#{{ p.id }}</div>
+                <div class="ap-tc ap-tc--prop">{{ p.annonceTitre || '—' }}</div>
+                <div class="ap-tc ap-tc--date">{{ formatDate(p.datePaiement) }}</div>
+                <div class="ap-tc ap-tc--amt">{{ formatMontant(p.montantTotal) }}</div>
+                <div class="ap-tc">
+                  <span [class]="getStatutClass(p.statutPaiement)">{{ getStatutLabel(p.statutPaiement) }}</span>
+                </div>
+                <div class="ap-tc">
+                  <button
+                    *ngIf="estValide(p.statutPaiement)"
+                    id="btn-ap-dl-{{ p.id }}"
+                    class="ap-dl-btn"
+                    (click)="telechargerRecu(p.id)"
+                    title="Télécharger le reçu">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                      <polyline points="7 10 12 15 17 10"/>
+                      <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Reçu PDF
+                  </button>
+                  <span class="ap-no-action" *ngIf="!estValide(p.statutPaiement)">—</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </ng-container>
+
+  </main>
+</div>

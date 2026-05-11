@@ -1,0 +1,186 @@
+<div class="meuble-form-page">
+  <div class="form-shell">
+    <div class="form-intro">
+      <span class="eyebrow">
+        {{ modeModification ? 'Modifier votre annonce' : 'Publier une annonce meuble' }}
+      </span>
+
+      <h1>
+        {{ modeModification ? 'Modifier le meuble' : 'Publier un meuble' }}
+      </h1>
+
+      <p>
+        Ajoutez les informations de votre meuble avec une présentation claire et élégante.
+      </p>
+    </div>
+
+    <div class="form-card">
+      <div *ngIf="erreur" class="alert-error">
+        {{ erreur }}
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="soumettre()" class="meuble-form">
+
+        <!-- Catégorie -->
+        <div class="field full">
+          <label for="categorie">Catégorie <span>*</span></label>
+          <select id="categorie" formControlName="categorie">
+            <option value="">— Choisir une catégorie —</option>
+            <option *ngFor="let c of categories" [value]="c">{{ c }}</option>
+          </select>
+          <small *ngIf="f['categorie'].touched && f['categorie'].invalid">
+            Veuillez choisir une catégorie.
+          </small>
+        </div>
+
+        <!-- Titre -->
+        <div class="field full">
+          <label for="titre">Titre <span>*</span></label>
+          <input
+            id="titre"
+            type="text"
+            formControlName="titre"
+            placeholder="ex: Bureau en bois massif"
+          />
+          <small *ngIf="f['titre'].touched && f['titre'].invalid">
+            Le titre est obligatoire.
+          </small>
+        </div>
+
+        <!-- Description -->
+        <div class="field full">
+          <label for="description">Description <span>*</span></label>
+          <textarea
+            id="description"
+            rows="5"
+            formControlName="description"
+            placeholder="Décrivez votre meuble (dimensions, couleur, matière...)"
+          ></textarea>
+          <small *ngIf="f['description'].touched && f['description'].invalid">
+            La description est obligatoire.
+          </small>
+        </div>
+
+        <!-- Photo avec vérification IA -->
+        <div class="field full">
+          <div class="photo-label-row">
+            <label for="photos">Photo du meuble <span>*</span></label>
+            <span class="ai-badge">Vérification IA</span>
+          </div>
+
+          <label for="photos" class="upload-dropzone">
+            <input
+              id="photos"
+              type="file"
+              multiple
+              accept="image/*"
+              (change)="onPhotosChange($event)"
+              hidden
+            />
+
+            <ng-container *ngIf="apercuPhotos.length === 0; else imagePreview">
+              <div class="upload-icon">📷</div>
+              <div class="upload-title">Cliquez pour choisir une photo</div>
+              <div class="upload-subtitle">JPG, PNG ou WEBP — max 5MB</div>
+            </ng-container>
+
+            <ng-template #imagePreview>
+              <img
+                [src]="apercuPhotos[0]"
+                alt="Photo meuble"
+                class="upload-preview-image"
+              />
+
+              <span class="preview-count" *ngIf="apercuPhotos.length > 1">
+                +{{ apercuPhotos.length - 1 }} autre(s)
+              </span>
+            </ng-template>
+          </label>
+
+          <!-- Chargement -->
+          <div *ngIf="isVerifying" class="alert alert-info mt-2">
+            🔍 Vérification en cours...
+          </div>
+
+          <!-- Erreur -->
+          <div *ngIf="imageError" class="alert alert-danger mt-2">
+            ❌ {{ imageError }}
+          </div>
+
+          <!-- Succès -->
+          <div *ngIf="imageValid" class="alert alert-success mt-2">
+            ✅ Image valide — {{ confidence }}% de confiance
+          </div>
+        </div>
+
+        <!-- État -->
+        <div class="field full">
+          <label for="etat">État <span>*</span></label>
+          <select id="etat" formControlName="etat">
+            <option value="">— Choisir un état —</option>
+            <option *ngFor="let e of etats" [value]="e.valeur">{{ e.label }}</option>
+          </select>
+          <small *ngIf="f['etat'].touched && f['etat'].invalid">
+            L’état est obligatoire.
+          </small>
+        </div>
+
+        <!-- Prix -->
+        <div class="field full">
+          <label for="prix">Prix (DT) <span>*</span></label>
+          <input
+            id="prix"
+            type="number"
+            formControlName="prix"
+            placeholder="ex: 150"
+          />
+          <small *ngIf="f['prix'].touched && f['prix'].invalid">
+            Le prix est obligatoire.
+          </small>
+        </div>
+
+        <!-- Localisation -->
+        <div class="field full">
+          <label for="ville">Localisation <span>*</span></label>
+
+          <div #mapContainer class="leaflet-map"></div>
+
+          <input
+            id="ville"
+            type="text"
+            formControlName="ville"
+            placeholder="Entrez une adresse ou cliquez sur la carte"
+          />
+
+          <div class="coords-info" *ngIf="adresseSelectionnee">
+            Adresse sélectionnée : {{ adresseSelectionnee }}
+          </div>
+
+          <small *ngIf="f['ville'].touched && f['ville'].invalid">
+            La localisation est obligatoire.
+          </small>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn-submit"
+            [disabled]="chargement || isVerifying || (!modeModification && !imageValid)"
+          >
+            {{
+              chargement
+                ? 'Enregistrement...'
+                : isVerifying
+                  ? 'Vérification...'
+                  : modeModification
+                    ? 'Enregistrer'
+                    : 'Publier le meuble'
+            }}
+          </button>
+
+          <a routerLink="/meubles" class="btn-cancel">Annuler</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

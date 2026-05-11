@@ -1,0 +1,1125 @@
+<div class="visites-page">
+
+  <!-- DASHBOARD -->
+  <ng-container *ngIf="vueActuelle === 'dashboard'">
+
+    <!-- HERO -->
+    <section class="visites-hero">
+      <div class="hero-overlay"></div>
+
+      <div class="hero-content">
+        <div class="hero-icon">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M23 7l-7 5 7 5V7z"></path>
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+          </svg>
+        </div>
+
+        <div>
+          <h1>Visites en ligne</h1>
+          <p>
+            Consultez vos visites programmées, vidéos préenregistrées et visites 3D.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <main class="visites-content">
+
+      <!-- TABS -->
+      <div class="tabs-strip">
+        <button
+          type="button"
+          class="tab-item"
+          [class.active]="ongletActif() === 'directes'"
+          (click)="choisirOnglet('directes')">
+          <span class="tab-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 7l-7 5 7 5V7z"></path>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+            </svg>
+          </span>
+          Visites directes
+        </button>
+
+        <button
+          type="button"
+          class="tab-item"
+          [class.active]="ongletActif() === 'preenregistrees'"
+          (click)="choisirOnglet('preenregistrees')">
+          <span class="tab-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+              <path d="M10 9l5 3-5 3V9z"></path>
+            </svg>
+          </span>
+          Vidéos préenregistrées
+        </button>
+
+        <button
+          type="button"
+          class="tab-item"
+          [class.active]="ongletActif() === 'visite3d'"
+          (click)="choisirOnglet('visite3d')">
+          <span class="tab-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+              <path d="M3.3 7L12 12l8.7-5"></path>
+              <path d="M12 22V12"></path>
+            </svg>
+          </span>
+          Visite 3D
+        </button>
+      </div>
+
+      <!-- FILTERS -->
+      <section class="filters-card">
+        <div class="filter-field">
+          <label>Date</label>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </span>
+            <input type="date" [(ngModel)]="filtreDate" />
+          </div>
+        </div>
+
+        <div class="filter-field filter-wide">
+          <label>
+            {{ roleActuel === 'PROPRIETAIRE' ? 'Étudiant ou appartement' : 'Appartement' }}
+          </label>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="M21 21l-4.35-4.35"></path>
+              </svg>
+            </span>
+            <input
+              type="text"
+              [(ngModel)]="filtreNom"
+              [placeholder]="roleActuel === 'PROPRIETAIRE' ? 'Rechercher un étudiant ou une annonce...' : 'Rechercher un appartement...'" />
+          </div>
+        </div>
+
+        <div
+          class="filter-field"
+          *ngIf="roleActuel === 'ETUDIANT' && ongletActif() === 'visite3d'">
+          <label>Étudiant</label>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21a8 8 0 0 0-16 0"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+            </span>
+            <input
+              type="text"
+              [(ngModel)]="filtreEtudiant"
+              placeholder="Rechercher un étudiant..." />
+          </div>
+        </div>
+
+        <div
+          class="filter-field"
+          *ngIf="roleActuel === 'PROPRIETAIRE' || ongletActif() !== 'visite3d'">
+          <label>Statut</label>
+          <div class="input-wrap">
+            <select
+              *ngIf="roleActuel === 'PROPRIETAIRE'"
+              [(ngModel)]="filtreStatut">
+              <option value="">Tous les statuts</option>
+              <option *ngFor="let s of statutsDisponibles" [value]="s">
+                {{ getStatutLabel(s) }}
+              </option>
+            </select>
+
+            <select
+              *ngIf="roleActuel === 'ETUDIANT'"
+              [(ngModel)]="filtreStatutEtudiant">
+              <option value="">Tous les statuts</option>
+              <option value="PLANIFIEE">Planifiée</option>
+              <option value="TERMINEE">Terminée</option>
+              <option value="ANNULEE">Annulée</option>
+            </select>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="btn-reset"
+          (click)="filtreDate=''; filtreNom=''; filtreEtudiant=''; filtreStatut=''; filtreStatutEtudiant=''">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+          Réinitialiser
+        </button>
+      </section>
+
+      <!-- STATS -->
+      <section class="stats-strip">
+        <div class="stat-item">
+          <div class="stat-icon green">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          <div>
+            <span class="stat-label">Visites totales</span>
+            <strong>{{ roleActuel === 'ETUDIANT' ? visitesEtudiant.length : visites.length }}</strong>
+            <small>au total</small>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-icon mint">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 17l6-6 4 4 8-8"></path>
+              <path d="M14 7h7v7"></path>
+            </svg>
+          </div>
+          <div>
+            <span class="stat-label">Directes</span>
+            <strong>{{ roleActuel === 'ETUDIANT' ? visitesEtudiantDirectes.length : visitesDirectes.length }}</strong>
+            <small>visites</small>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-icon gold">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+              <path d="M10 9l5 3-5 3V9z"></path>
+            </svg>
+          </div>
+          <div>
+            <span class="stat-label">Vidéos</span>
+            <strong>{{ roleActuel === 'ETUDIANT' ? videosEtudiantPreenregistrees.length : videosPreenregistrees.length }}</strong>
+            <small>disponibles</small>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <div class="stat-icon blue">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+            </svg>
+          </div>
+          <div>
+            <span class="stat-label">Visites 3D</span>
+            <strong>{{ roleActuel === 'ETUDIANT' ? visitesEtudiant3D.length : visites3D.length }}</strong>
+            <small>logements</small>
+          </div>
+        </div>
+      </section>
+
+      <!-- STATES -->
+      <div *ngIf="loading" class="state-card">
+        <div class="state-spinner"></div>
+        <p>Chargement des visites…</p>
+      </div>
+
+      <div *ngIf="!loading && erreur" class="state-card error">
+        <p>{{ erreur }}</p>
+      </div>
+
+      <!-- PROPRIETAIRE TABLES -->
+      <ng-container *ngIf="roleActuel === 'PROPRIETAIRE' && !loading && !erreur">
+
+        <!-- PROPRIETAIRE 3D -->
+        <ng-container *ngIf="ongletActif() === 'visite3d'; else tableauProprietaireNormal">
+          <section class="table-shell">
+            <div class="table-head visite3d-grid">
+              <div>Appartement</div>
+              <div>Étudiant</div>
+              <div>Date · Heure</div>
+              <div>Actions</div>
+            </div>
+
+            <div class="table-body">
+              <div class="table-row visite3d-grid" *ngFor="let item of visitesFiltrees">
+                <div class="listing-cell">
+                  <img
+                    [src]="getPhotoAnnonce(item)"
+                    alt="Appartement"
+                    class="listing-thumb"
+                    (error)="setDefaultPhoto($event)" />
+
+                  <div class="cell-stack">
+                    <strong>{{ getTitreAnnonce(item) }}</strong>
+                    <span>Demande #{{ item.demandeId }}</span>
+                  </div>
+                </div>
+
+                <div class="owner-cell">
+                  <div class="owner-avatar">
+                    {{ getNomEtudiant(item).charAt(0) }}
+                  </div>
+                  <div class="cell-stack">
+                    <strong>{{ getNomEtudiant(item) }}</strong>
+                    <span>{{ item.etudiantEmail || '—' }}</span>
+                  </div>
+                </div>
+
+                <div class="cell-stack">
+                  <strong>{{ item.dateVisite || item.createdAt || '—' }}</strong>
+                  <span>{{ item.heureDebut || '—' }}</span>
+                </div>
+
+                <div class="actions-3d">
+                  <button
+                    *ngIf="!hasVisite3D(item)"
+                    type="button"
+                    class="btn-table-primary"
+                    (click)="ouvrirCreation3D(item)">
+                    Créer 3D
+                  </button>
+
+                  <button
+                    *ngIf="hasVisite3D(item)"
+                    type="button"
+                    class="btn-table-primary"
+                    (click)="ouvrirModification3D(item)">
+                    Modifier
+                  </button>
+
+                  <button
+                    *ngIf="hasVisite3D(item)"
+                    type="button"
+                    class="btn-table-secondary"
+                    (click)="ouvrirModalEnvoi3D(item)">
+                    Envoyer
+                  </button>
+                </div>
+              </div>
+
+              <div *ngIf="visitesFiltrees.length === 0" class="table-empty">
+                <p>Aucune visite disponible pour créer une visite 3D.</p>
+              </div>
+            </div>
+          </section>
+        </ng-container>
+
+        <!-- PROPRIETAIRE DIRECT + VIDEO -->
+        <ng-template #tableauProprietaireNormal>
+          <section class="table-shell">
+            <div class="table-head visits-grid">
+              <div>Étudiant</div>
+              <div>Annonce</div>
+              <div>Mode</div>
+              <div>Date · Heure</div>
+              <div>Statut</div>
+              <div>Actions</div>
+            </div>
+
+            <div class="table-body">
+              <div
+                class="table-row visits-grid"
+                *ngFor="let item of visitesFiltrees"
+                [class.row-selected]="visiteSelectionnee?.idVisite === item.idVisite && detailVisible">
+
+                <div class="owner-cell">
+                  <div class="owner-avatar">
+                    {{ getNomEtudiant(item).charAt(0) }}
+                  </div>
+                  <div class="cell-stack">
+                    <strong>{{ getNomEtudiant(item) }}</strong>
+                    <span>Demande #{{ item.demandeId }}</span>
+                  </div>
+                </div>
+
+                <div class="cell-stack">
+                  <strong>{{ getTitreAnnonce(item) }}</strong>
+                  <span>{{ item.etudiantEmail || '—' }}</span>
+                </div>
+
+                <div>
+                  <span
+                    class="mode-badge"
+                    [class.direct]="item.modeVisite === 'DIRECT'"
+                    [class.video]="item.modeVisite === 'VIDEO'">
+                    <span class="mode-dot"></span>
+                    {{ item.modeVisite === 'DIRECT' ? 'Visite directe' : 'Vidéo' }}
+                  </span>
+                </div>
+
+                <div class="date-cell">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <div class="cell-stack">
+                    <strong>{{ item.dateVisite || '—' }}</strong>
+                    <span>{{ item.heureDebut || '—' }}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <span [class]="getStatutEtudiantClass(item.statutVisite)">
+                    {{ getStatutEtudiantLabel(item.statutVisite) }}
+                  </span>
+                </div>
+
+                <div class="cell-actions">
+                  <button
+                    type="button"
+                    class="btn-table-primary"
+                    [routerLink]="['/visite-en-ligne']"
+                    [queryParams]="{ action: 'planifier', visiteId: item.idVisite }">
+                    Gérer
+                  </button>
+                </div>
+              </div>
+
+              <div *ngIf="visitesFiltrees.length === 0" class="table-empty">
+                <p>{{ ongletActif() === 'directes' ? 'Aucune visite directe.' : 'Aucune vidéo préenregistrée.' }}</p>
+              </div>
+            </div>
+          </section>
+        </ng-template>
+      </ng-container>
+
+      <!-- ETUDIANT TABLES -->
+      <ng-container *ngIf="roleActuel === 'ETUDIANT' && !loading && !erreur">
+
+        <!-- ETUDIANT 3D -->
+        <ng-container *ngIf="ongletActif() === 'visite3d'; else tableauEtudiantNormal">
+          <section class="table-shell">
+            <div class="table-head visite3d-grid">
+              <div>Appartement</div>
+              <div>Étudiant</div>
+              <div>Date · Heure</div>
+              <div>Action</div>
+            </div>
+
+            <div class="table-body">
+              <div class="table-row visite3d-grid" *ngFor="let item of visitesFiltreesEtudiant">
+
+                <div class="listing-cell">
+                  <img
+                    [src]="getPhotoAnnonce(item)"
+                    alt="Appartement"
+                    class="listing-thumb"
+                    (error)="setDefaultPhoto($event)" />
+
+                  <div class="cell-stack">
+                    <strong>{{ getTitreAnnonce(item) }}</strong>
+                    <span>Demande #{{ item.demandeId }}</span>
+                  </div>
+                </div>
+
+                <div class="owner-cell">
+                  <div class="owner-avatar">
+                    {{ getNomEtudiant(item).charAt(0) }}
+                  </div>
+                  <div class="cell-stack">
+                    <strong>{{ getNomEtudiant(item) }}</strong>
+                    <span>{{ item.etudiantEmail || '—' }}</span>
+                  </div>
+                </div>
+
+                <div class="cell-stack">
+                  <strong>{{ item.dateVisite || item.createdAt || '—' }}</strong>
+                  <span>{{ item.heureDebut || '—' }}</span>
+                </div>
+
+                <div class="cell-actions">
+                  <button
+                    type="button"
+                    class="btn-table-primary"
+                    (click)="ouvrirVisite3DEtudiant(item)">
+                    Voir 3D
+                  </button>
+                </div>
+              </div>
+
+              <div class="student-3d-viewer" *ngIf="visite3DOuverte">
+                <div class="student-3d-viewer-header">
+                  <div>
+                    <h3>Visite 3D du logement</h3>
+                    <p>Explorez les pièces en 360°.</p>
+                  </div>
+
+                  <button
+                    type="button"
+                    class="btn-table-secondary"
+                    (click)="fermerVisite3DEtudiant()">
+                    Fermer
+                  </button>
+                </div>
+
+                <app-visite360
+                  [scenes]="scenes3DEtudiant"
+                  [titrePropriete]="'Visite 3D'">
+                </app-visite360>
+              </div>
+
+              <div *ngIf="visitesFiltreesEtudiant.length === 0" class="table-empty">
+                <p>Aucune visite 3D disponible.</p>
+              </div>
+            </div>
+          </section>
+        </ng-container>
+
+        <!-- ETUDIANT DIRECT + VIDEO -->
+        <ng-template #tableauEtudiantNormal>
+          <section class="table-shell">
+            <div class="table-head student-visits-grid">
+              <div>Logement</div>
+              <div>Propriétaire</div>
+              <div>Mode</div>
+              <div>Date · Heure</div>
+              <div>Statut</div>
+              <div>Actions</div>
+            </div>
+
+            <div class="table-body">
+              <div class="table-row student-visits-grid" *ngFor="let item of visitesFiltreesEtudiant">
+
+                <div class="listing-cell">
+                  <img
+                    [src]="getPhotoAnnonce(item)"
+                    alt="Photo logement"
+                    class="listing-thumb"
+                    (error)="setDefaultPhoto($event)" />
+
+                  <div class="cell-stack">
+                    <strong>{{ getTitreAnnonce(item) }}</strong>
+                    <span>Demande #{{ item.demandeId }}</span>
+                  </div>
+                </div>
+
+                <div class="owner-cell">
+                  <div class="owner-avatar">
+                    {{ getNomProprietaire(item).charAt(0) }}
+                  </div>
+                  <div class="cell-stack">
+                    <strong>{{ getNomProprietaire(item) }}</strong>
+                    <span>{{ getEmailProprietaire(item) }}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <span
+                    class="mode-badge"
+                    [class.direct]="item.modeVisite === 'DIRECT'"
+                    [class.video]="item.modeVisite === 'VIDEO'">
+                    <span class="mode-dot"></span>
+                    {{ item.modeVisite === 'DIRECT' ? 'Visite directe' : 'Vidéo' }}
+                  </span>
+                </div>
+
+                <div class="date-cell">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <div class="cell-stack">
+                    <strong>{{ item.dateVisite || '—' }}</strong>
+                    <span>{{ item.heureDebut || '—' }}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <span [class]="getStatutEtudiantClass(item.statutVisite)">
+                    {{ getStatutEtudiantLabel(item.statutVisite) }}
+                  </span>
+                </div>
+
+                <div class="cell-actions">
+                  <button
+                    type="button"
+                    class="btn-table-primary"
+                    *ngIf="item.modeVisite === 'DIRECT' && (item.jitsiUri || item.meetUri)"
+                    (click)="ouvrirContenuEtudiant(item)">
+                    Rejoindre
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn-table-primary"
+                    *ngIf="item.modeVisite === 'VIDEO' && item.videoUrl"
+                    (click)="ouvrirContenuEtudiant(item)">
+                    Voir vidéo
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn-table-secondary"
+                    (click)="voirDetailEtudiant(item)">
+                    Voir
+                  </button>
+                </div>
+              </div>
+
+              <div *ngIf="visitesFiltreesEtudiant.length === 0" class="table-empty">
+                <p>{{ ongletActif() === 'directes' ? 'Aucune visite directe.' : 'Aucune vidéo préenregistrée.' }}</p>
+              </div>
+            </div>
+          </section>
+        </ng-template>
+      </ng-container>
+
+    </main>
+  </ng-container>
+
+  <!-- PLANIFICATION PROPRIETAIRE -->
+  <ng-container *ngIf="vueActuelle === 'planification' && roleActuel === 'PROPRIETAIRE'">
+
+    <main class="visites-content plan-content">
+      <div class="plan-topbar">
+        <button class="btn-back" type="button" (click)="retourDashboard()">
+          ← Retour
+        </button>
+
+        <div>
+          <h2>Planification</h2>
+          <p>Visite #{{ demandeId }} · {{ nomEtudiant }}</p>
+        </div>
+      </div>
+
+      <div class="plan-layout">
+
+        <section class="call-card">
+
+          <!-- VIDEO -->
+          <ng-container *ngIf="mode === 'video'; else blocVisioDirect">
+            <div class="call-stage video-stage">
+
+              <video
+                *ngIf="isDirectVideoLink(getFullVideoUrl())"
+                class="video-player"
+                controls
+                preload="metadata">
+                <source [src]="getFullVideoUrl()!" [type]="getVideoMime()" />
+                Votre navigateur ne supporte pas la vidéo.
+              </video>
+
+              <iframe
+                *ngIf="!isDirectVideoLink(getFullVideoUrl()) && safeEmbedUrl"
+                [src]="safeEmbedUrl"
+                class="video-iframe"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                allowfullscreen>
+              </iframe>
+
+              <div
+                class="gm-stage"
+                *ngIf="!isDirectVideoLink(getFullVideoUrl()) && !safeEmbedUrl && canOpenExternally()">
+                <h3>Vidéo externe</h3>
+                <p>Cette vidéo ne peut pas être intégrée directement ici.</p>
+                <a class="btn-gm-open" [href]="getFullVideoUrl()!" target="_blank">
+                  Ouvrir la vidéo
+                </a>
+              </div>
+
+              <div class="gm-stage" *ngIf="!getFullVideoUrl()">
+                <h3>Vidéo préenregistrée</h3>
+                <p>Aucune vidéo disponible.</p>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- DIRECT -->
+          <ng-template #blocVisioDirect>
+
+            <div class="call-card-header">
+              <div class="call-service-indicator">
+                <span class="call-live-dot" [class.active]="jitsiActif"></span>
+                <span>{{ selectedVisioService === 'jitsi' ? 'Jitsi Meet' : 'Google Meet' }}</span>
+              </div>
+              <code>{{ jitsiRoomName || meetingCode || 'En attente…' }}</code>
+            </div>
+
+            <div class="service-selector">
+              <button
+                type="button"
+                class="service-btn"
+                [class.active]="selectedVisioService === 'jitsi'"
+                (click)="switchVisioService('jitsi')">
+                <span class="service-dot jitsi"></span>
+                Jitsi Meet
+              </button>
+
+              <button
+                type="button"
+                class="service-btn"
+                [class.active]="selectedVisioService === 'google'"
+                (click)="switchVisioService('google')">
+                <span class="service-dot google"></span>
+                Google Meet
+              </button>
+            </div>
+
+            <div class="call-stage" *ngIf="selectedVisioService === 'jitsi'">
+              <div #jitsiContainer class="jitsi-frame"></div>
+            </div>
+
+            <div class="call-stage gm-stage" *ngIf="selectedVisioService === 'google'">
+              <h3>Google Meet</h3>
+              <p>Google Meet s’ouvre dans un nouvel onglet.</p>
+              <button
+                type="button"
+                class="btn-gm-open"
+                [disabled]="!lienVisio"
+                (click)="ouvrirMeet(lienVisio)">
+                {{ lienVisio ? 'Rejoindre Google Meet →' : 'Lien non encore généré' }}
+              </button>
+            </div>
+          </ng-template>
+        </section>
+
+        <aside class="plan-sidebar">
+          <div class="sidebar-block">
+            <div class="sidebar-block-label">Informations</div>
+
+            <div class="info-row"><span>Demande</span><strong>#{{ demandeId || '—' }}</strong></div>
+            <div class="info-row"><span>Annonce</span><strong>{{ titreAnnonce }}</strong></div>
+            <div class="info-row"><span>Étudiant</span><strong>{{ nomEtudiant }}</strong></div>
+            <div class="info-row" *ngIf="etudiantEmail"><span>Email</span><strong>{{ etudiantEmail }}</strong></div>
+            <div class="info-row"><span>Date</span><strong>{{ dateVisite || '—' }}</strong></div>
+            <div class="info-row"><span>Début</span><strong>{{ heureDebut || '—' }}</strong></div>
+            <div class="info-row"><span>Fin</span><strong>{{ heureFin || '—' }}</strong></div>
+            <div class="info-row">
+              <span>Statut</span>
+              <span [class]="getStatutEtudiantClass(visiteSelectionnee?.statutVisite)">
+                {{ getStatutEtudiantLabel(visiteSelectionnee?.statutVisite) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="sidebar-block" *ngIf="mode === 'direct'">
+            <div class="sidebar-block-label">Service de visioconférence</div>
+
+            <label class="visio-option" [class.active]="selectedVisioService === 'jitsi'">
+              <input
+                type="radio"
+                name="visio"
+                value="jitsi"
+                [checked]="selectedVisioService === 'jitsi'"
+                (change)="switchVisioService('jitsi')" />
+              <div>
+                <strong>Jitsi Meet</strong>
+                <span *ngIf="jitsiUri">{{ jitsiUri }}</span>
+                <span *ngIf="!jitsiUri">Généré à l’enregistrement</span>
+              </div>
+            </label>
+
+            <label class="visio-option" [class.active]="selectedVisioService === 'google'">
+              <input
+                type="radio"
+                name="visio"
+                value="google"
+                [checked]="selectedVisioService === 'google'"
+                (change)="switchVisioService('google')" />
+              <div>
+                <strong>Google Meet</strong>
+                <span *ngIf="lienVisio">{{ lienVisio }}</span>
+                <span *ngIf="!lienVisio">Généré à l’enregistrement</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="sidebar-block" *ngIf="message">
+            <div class="sidebar-block-label">Message</div>
+            <div class="message-box">{{ message }}</div>
+          </div>
+
+          <button
+            type="button"
+            class="btn-save"
+            [disabled]="saving"
+            (click)="ouvrirModalModificationVisite()">
+            Modifier et envoyer
+          </button>
+        </aside>
+      </div>
+    </main>
+  </ng-container>
+
+  <!-- DETAIL ETUDIANT -->
+  <ng-container *ngIf="vueActuelle === 'planification' && roleActuel === 'ETUDIANT'">
+
+    <main class="visites-content plan-content">
+      <div class="plan-topbar">
+        <button class="btn-back" type="button" (click)="retourDashboard()">
+          ← Retour
+        </button>
+
+        <div>
+          <h2>Visite en ligne</h2>
+          <p>Consultez les détails de votre visite et accédez au contenu envoyé par le propriétaire.</p>
+        </div>
+      </div>
+
+      <div class="student-visit-layout">
+
+        <section class="student-media-card">
+
+          <ng-container *ngIf="mode === 'visite3d'; else blocVideoOuDirectEtudiant">
+            <app-visite360
+              [titrePropriete]="titreAnnonce"
+              [scenes]="scenes360">
+            </app-visite360>
+          </ng-container>
+
+          <ng-template #blocVideoOuDirectEtudiant>
+
+            <ng-container *ngIf="mode === 'video'; else blocVisioEtudiant">
+              <div class="student-media-stage">
+
+                <video
+                  *ngIf="isDirectVideoLink(getFullVideoUrl())"
+                  class="student-video-player"
+                  controls
+                  preload="metadata">
+                  <source [src]="getFullVideoUrl()!" [type]="getVideoMime()" />
+                  Votre navigateur ne supporte pas la vidéo.
+                </video>
+
+                <iframe
+                  *ngIf="!isDirectVideoLink(getFullVideoUrl()) && safeEmbedUrl"
+                  [src]="safeEmbedUrl"
+                  class="student-video-iframe"
+                  frameborder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                  allowfullscreen>
+                </iframe>
+
+                <div
+                  class="student-empty-box"
+                  *ngIf="!isDirectVideoLink(getFullVideoUrl()) && !safeEmbedUrl && canOpenExternally()">
+                  <h3>Vidéo externe</h3>
+                  <p>Cette vidéo ne peut pas être intégrée directement ici.</p>
+                  <a class="btn-open-video" [href]="getFullVideoUrl()!" target="_blank">
+                    Ouvrir la vidéo
+                  </a>
+                </div>
+
+                <div class="student-empty-box" *ngIf="!getFullVideoUrl()">
+                  <h3>Vidéo préenregistrée</h3>
+                  <p>Aucune vidéo disponible.</p>
+                </div>
+              </div>
+
+              <div class="student-video-note">
+                <div class="student-video-note-icon">✓</div>
+                <div>
+                  <strong>Vidéo envoyée par le propriétaire</strong>
+                  <p>Vous pouvez regarder cette vidéo autant de fois que vous le souhaitez.</p>
+                </div>
+              </div>
+            </ng-container>
+
+            <ng-template #blocVisioEtudiant>
+              <div class="student-media-stage student-live-box">
+                <div class="student-empty-box">
+                  <h3>Visite en direct</h3>
+                  <p>Rejoignez la visioconférence envoyée par le propriétaire.</p>
+
+                  <button
+                    type="button"
+                    class="btn-open-video"
+                    *ngIf="jitsiUri || lienVisio"
+                    (click)="ouvrirMeet(jitsiUri || lienVisio)">
+                    Rejoindre la visite
+                  </button>
+                </div>
+              </div>
+            </ng-template>
+          </ng-template>
+        </section>
+
+        <aside class="student-side-card">
+          <div class="student-info-block">
+            <div class="student-side-label">Informations</div>
+
+            <div class="student-info-row"><span>Annonce</span><strong>{{ titreAnnonce }}</strong></div>
+            <div class="student-info-row"><span>Propriétaire</span><strong>{{ getNomProprietaire(visiteSelectionnee) }}</strong></div>
+            <div class="student-info-row"><span>Date souhaitée</span><strong>{{ dateVisite || '—' }}</strong></div>
+            <div class="student-info-row">
+              <span>Heure</span>
+              <strong>{{ heureDebut || '—' }} <ng-container *ngIf="heureFin">- {{ heureFin }}</ng-container></strong>
+            </div>
+            <div class="student-info-row"><span>Type de visite</span><strong class="student-type-chip">En ligne</strong></div>
+            <div class="student-info-row">
+              <span>Mode</span>
+              <strong>
+                {{ mode === 'video' ? 'Vidéo préenregistrée' : mode === 'visite3d' ? 'Visite 3D' : 'Visioconférence' }}
+              </strong>
+            </div>
+            <div class="student-info-row" *ngIf="mode !== 'visite3d'">
+              <span>Statut</span>
+              <span [class]="getStatutEtudiantClass(visiteSelectionnee?.statutVisite)">
+                {{ getStatutEtudiantLabel(visiteSelectionnee?.statutVisite) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="student-info-block" *ngIf="message">
+            <div class="student-side-label">Message du propriétaire</div>
+            <div class="student-message-box">{{ message }}</div>
+          </div>
+
+          <button
+            type="button"
+            class="student-contact-btn"
+            (click)="contacterProprietaire()">
+            Contacter le propriétaire
+          </button>
+        </aside>
+      </div>
+    </main>
+  </ng-container>
+
+  <!-- MODAL ENVOI 3D -->
+  <div
+    class="modal-backdrop"
+    *ngIf="modalEnvoi3DOuvert"
+    (click)="fermerModalEnvoi3D()">
+  </div>
+
+  <section class="modal-card modal-3d" *ngIf="modalEnvoi3DOuvert">
+    <div class="modal-header">
+      <div>
+        <h3>Envoyer la visite 3D</h3>
+        <p>
+          Appartement :
+          <strong>{{ getTitreAnnonce(annonceSelectionnee3D) }}</strong>
+        </p>
+      </div>
+
+      <button type="button" class="modal-close" (click)="fermerModalEnvoi3D()">
+        ×
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <h4>Étudiants intéressés</h4>
+
+      <div class="student-send-list" *ngIf="etudiantsPourEnvoi3D.length > 0">
+        <label
+          class="student-send-row"
+          *ngFor="let etudiant of etudiantsPourEnvoi3D">
+
+          <input
+            type="checkbox"
+            [(ngModel)]="etudiant.selectionne" />
+
+          <div class="student-avatar">
+            {{ etudiant.nomEtudiant?.charAt(0) || 'E' }}
+          </div>
+
+          <div class="student-info">
+            <strong>{{ etudiant.nomEtudiant }}</strong>
+            <span>{{ etudiant.emailEtudiant }}</span>
+          </div>
+
+          <div class="student-demande">
+            <strong>Demande #{{ etudiant.demandeId }}</strong>
+            <span>{{ etudiant.dateDemande }}</span>
+          </div>
+        </label>
+      </div>
+
+      <div class="modal-empty" *ngIf="etudiantsPourEnvoi3D.length === 0">
+        Aucun étudiant intéressé pour cet appartement.
+      </div>
+
+      <div class="modal-info">
+        La visite 3D sera envoyée aux étudiants sélectionnés.
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-modal-cancel" (click)="fermerModalEnvoi3D()">
+        Annuler
+      </button>
+
+      <button
+        type="button"
+        class="btn-modal-confirm"
+        [disabled]="getNombreSelectionnes3D() === 0"
+        (click)="envoyerVisite3D()">
+        Envoyer la visite 3D
+      </button>
+    </div>
+  </section>
+
+  <!-- MODAL MODIFICATION VISITE -->
+  <div
+    class="modal-backdrop"
+    *ngIf="modalModificationVisiteOuverte"
+    (click)="fermerModalModificationVisite()">
+  </div>
+
+  <section class="modal-card visite-modal" *ngIf="modalModificationVisiteOuverte">
+
+    <div class="modal-header">
+      <div>
+        <h3>
+          {{ modeModificationVisite === 'direct' ? 'Modifier la visite en ligne' : 'Modifier la vidéo' }}
+        </h3>
+        <p>Vérifiez les informations avant l’envoi.</p>
+      </div>
+
+      <button
+        type="button"
+        class="modal-close"
+        (click)="fermerModalModificationVisite()">
+        ×
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="resume-mini">
+        <div>
+          <span>Demande</span>
+          <strong>#{{ formModificationVisite.demandeId || demandeId }}</strong>
+        </div>
+
+        <div>
+          <span>Annonce</span>
+          <strong>{{ titreAnnonce || 'Annonce' }}</strong>
+        </div>
+
+        <div>
+          <span>Étudiant</span>
+          <strong>{{ nomEtudiant || 'Étudiant' }}</strong>
+        </div>
+      </div>
+
+      <ng-container *ngIf="modeModificationVisite === 'direct'">
+        <div class="auto-link-info">
+          Vous pouvez modifier la date, l’heure et le message de cette visite en ligne.
+        </div>
+
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label>Date de visite</label>
+            <input
+              type="date"
+              [(ngModel)]="formModificationVisite.dateVisite"
+              [min]="minDateVisite" />
+            <small class="field-error" *ngIf="erreurDateModification">
+              {{ erreurDateModification }}
+            </small>
+          </div>
+
+          <div class="modal-form-group">
+            <label>Heure début</label>
+            <input type="time" [(ngModel)]="formModificationVisite.heureDebut" />
+            <small class="field-error" *ngIf="erreurHeureDebutModification">
+              {{ erreurHeureDebutModification }}
+            </small>
+          </div>
+
+          <div class="modal-form-group">
+            <label>Heure fin</label>
+            <input type="time" [(ngModel)]="formModificationVisite.heureFin" />
+            <small class="field-error" *ngIf="erreurHeureFinModification">
+              {{ erreurHeureFinModification }}
+            </small>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="modeModificationVisite === 'video'">
+        <div class="video-source-switch">
+          <button
+            type="button"
+            [class.active]="sourceVideoModification === 'lien'"
+            (click)="sourceVideoModification = 'lien'; erreurVideoModification = ''">
+            Lien vidéo
+          </button>
+
+          <button
+            type="button"
+            [class.active]="sourceVideoModification === 'fichier'"
+            (click)="sourceVideoModification = 'fichier'; erreurVideoModification = ''">
+            Pièce jointe vidéo
+          </button>
+        </div>
+
+        <div class="modal-form-group" *ngIf="sourceVideoModification === 'lien'">
+          <label>Lien vidéo</label>
+          <input
+            type="text"
+            [(ngModel)]="formModificationVisite.videoUrl"
+            placeholder="Collez le lien de la vidéo" />
+        </div>
+
+        <div class="modal-form-group" *ngIf="sourceVideoModification === 'fichier'">
+          <label>Importer une nouvelle vidéo</label>
+          <input
+            type="file"
+            accept="video/*,.mp4,.mov,.avi,.webm,.mkv,.m4v"
+            (change)="onVideoModificationSelected($event)" />
+
+          <small class="selected-file" *ngIf="nomVideoModificationSelectionnee">
+            Fichier sélectionné : {{ nomVideoModificationSelectionnee }}
+          </small>
+
+          <small class="helper-text">
+            Formats acceptés : mp4, mov, avi, webm, mkv — max {{ tailleMaxVideoMo }} Mo
+          </small>
+        </div>
+
+        <small class="field-error" *ngIf="erreurVideoModification">
+          {{ erreurVideoModification }}
+        </small>
+      </ng-container>
+
+      <div class="modal-form-group">
+        <label>Message</label>
+        <textarea
+          rows="4"
+          [(ngModel)]="formModificationVisite.message"
+          placeholder="Ajoutez un message clair pour l’étudiant">
+        </textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button
+        type="button"
+        class="btn-modal-cancel"
+        (click)="fermerModalModificationVisite()">
+        Annuler
+      </button>
+
+      <button
+        type="button"
+        class="btn-modal-confirm"
+        [disabled]="savingModificationVisite"
+        (click)="enregistrerModificationVisite()">
+        {{
+          savingModificationVisite
+            ? 'Enregistrement...'
+            : modeModificationVisite === 'direct'
+              ? 'Modifier la visite'
+              : 'Modifier la vidéo'
+        }}
+      </button>
+
+      <small class="field-error global-error" *ngIf="erreurModificationVisite">
+        {{ erreurModificationVisite }}
+      </small>
+    </div>
+  </section>
+
+</div>

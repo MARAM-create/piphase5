@@ -1,0 +1,938 @@
+<div class="messagerie-page" [class.details-open]="detailsOuvert && conversationSelectionnee">
+  <!-- ═══════════════════════════════
+       SIDEBAR CONVERSATIONS
+  ═══════════════════════════════ -->
+  <aside class="sidebar">
+
+    <div class="sidebar-header">
+      <div class="sidebar-title-block">
+        <h2>Messages</h2>
+        <span class="total-unread" *ngIf="getTotalNonLus() > 0">{{ getTotalNonLus() }}</span>
+      </div>
+    </div>
+
+    <!-- RECHERCHE -->
+    <div class="search-wrapper">
+      <svg class="search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="rechercheConversation"
+        placeholder="Rechercher..."
+        class="search-input"
+      />
+    </div>
+
+    <!-- FILTRES -->
+    <div class="filters-bar">
+      <button type="button" [class.active]="filtreActif === 'TOUTES'"     (click)="filtreActif = 'TOUTES'">Tout</button>
+      <button type="button" [class.active]="filtreActif === 'NON_LUS'"    (click)="filtreActif = 'NON_LUS'">Non lus</button>
+      <button type="button" [class.active]="filtreActif === 'ACTIVES'"    (click)="filtreActif = 'ACTIVES'">Actives</button>
+      <button type="button" [class.active]="filtreActif === 'EN_ATTENTE'" (click)="filtreActif = 'EN_ATTENTE'">En attente</button>
+      <button type="button" [class.active]="filtreActif === 'LOCATION'"   (click)="filtreActif = 'LOCATION'">Location</button>
+      <button type="button" [class.active]="filtreActif === 'MATCHING'"   (click)="filtreActif = 'MATCHING'">Matching</button>
+    </div>
+
+    <!-- LISTE -->
+    <div class="conv-list">
+
+      <div class="conv-list-label" *ngIf="conversationsFiltrees.length > 0">
+        {{ conversationsFiltrees.length }} discussion{{ conversationsFiltrees.length > 1 ? 's' : '' }}
+      </div>
+
+      <div
+        *ngFor="let conv of conversationsFiltrees; trackBy: trackById"
+        class="conv-item"
+        [class.active]="conversationSelectionnee?.id === conv.id"
+        [class.inactive]="!conv.estActive"
+        [class.has-unread]="(unreadByConversation[conv.id] || 0) > 0"
+        (click)="conv.estActive ? ouvrirConversation(conv) : afficherConversationBloquee(conv)"
+      >
+        <div class="conv-avatar-wrap">
+          <!-- Photo si dispo, sinon initiales -->
+          <img
+            *ngIf="getPhotoUrl(conv)"
+            [src]="getPhotoUrl(conv)"
+            class="conv-avatar conv-avatar-img"
+            [class.avatar-pending]="!conv.estActive"
+            alt="Photo"
+          />
+          <div
+            *ngIf="!getPhotoUrl(conv)"
+            class="conv-avatar"
+            [class.avatar-matching]="conv.typeConversation === 'MATCHING'"
+            [class.avatar-pending]="!conv.estActive"
+          >
+            {{ getInitiales(getNomAffiche(conv)) }}
+          </div>
+          <span class="presence-dot" *ngIf="conv.estActive"></span>
+        </div>
+
+        <div class="conv-body">
+          <div class="conv-row-top">
+            <div class="conv-name-role">
+              <span class="conv-name">{{ getNomAffiche(conv) }}</span>
+              <span class="role-chip role-owner" *ngIf="getRoleInterlocuteur(conv) === 'Propriétaire'">Proprio</span>
+              <span class="role-chip role-student" *ngIf="getRoleInterlocuteur(conv) === 'Étudiant'">Étudiant</span>
+            </div>
+            <span class="conv-time">
+                {{ conv.dateDernierMessage ? (conv.dateDernierMessage | date:'HH:mm') : '' }}
+             </span>
+          </div>
+
+          <div class="conv-subtitle">
+            <span class="tag" [class.tag-location]="conv.typeConversation !== 'MATCHING'" [class.tag-matching]="conv.typeConversation === 'MATCHING'">
+              {{ conv.typeConversation === 'MATCHING' ? 'Matching' : 'Location' }}
+            </span>
+            <span class="conv-annonce">{{ conv.titreAnnonce || getSousTitreConversation(conv) }}</span>
+          </div>
+
+          <div class="conv-row-bottom">
+            <p class="conv-preview" [class.preview-pending]="!conv.estActive">
+              {{ getDernierMessage(conv) }}
+            </p>
+            <span class="unread-pill" *ngIf="(unreadByConversation[conv.id] || 0) > 0">
+              {{ unreadByConversation[conv.id] }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIDE -->
+      <div class="sidebar-empty" *ngIf="conversationsFiltrees.length === 0">
+        <div class="empty-icon-wrap">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <p>Aucune discussion</p>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ═══════════════════════════════
+       ZONE CHAT CENTRALE
+  ═══════════════════════════════ -->
+  <section class="chat-zone">
+
+    <!-- ── Aucune conv sélectionnée ── -->
+    <div class="chat-placeholder" *ngIf="!conversationSelectionnee">
+      <div class="placeholder-illustration">
+        <div class="placeholder-bubble b1"></div>
+        <div class="placeholder-bubble b2"></div>
+        <div class="placeholder-bubble b3"></div>
+        <svg viewBox="0 0 48 48" width="48" height="48" fill="none">
+          <path d="M24 4C12.95 4 4 12.72 4 22.75c0 5.73 2.58 10.83 6.62 14.26V44l6.08-3.34c1.66.46 3.42.71 5.3.71 11.05 0 20-8.72 20-18.62C42 12.64 35.05 4 24 4Z" fill="#3d7a5f" opacity=".15"/>
+          <path d="M24 4C12.95 4 4 12.72 4 22.75c0 5.73 2.58 10.83 6.62 14.26V44l6.08-3.34c1.66.46 3.42.71 5.3.71 11.05 0 20-8.72 20-18.62C42 12.64 35.05 4 24 4Z" stroke="#3d7a5f" stroke-width="1.5" fill="none"/>
+          <path d="M14 20h4m4 0h8M14 27h12" stroke="#3d7a5f" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h3>Vos messages</h3>
+      <p>Sélectionnez une conversation<br>pour afficher les échanges.</p>
+    </div>
+
+    <!-- ── Conv sélectionnée ── -->
+    <ng-container *ngIf="conversationSelectionnee">
+
+      <!-- HEADER -->
+      <div class="chat-header">
+        <div class="chat-header-left">
+          <div class="chat-header-avatar-wrap">
+            <img
+              *ngIf="getPhotoUrl(conversationSelectionnee)"
+              [src]="getPhotoUrl(conversationSelectionnee)"
+              class="chat-header-avatar conv-avatar-img"
+              [class.avatar-pending]="!conversationSelectionnee.estActive"
+              alt="Photo"
+            />
+            <div
+              *ngIf="!getPhotoUrl(conversationSelectionnee)"
+              class="chat-header-avatar"
+              [class.avatar-matching]="conversationSelectionnee.typeConversation === 'MATCHING'"
+              [class.avatar-pending]="!conversationSelectionnee.estActive"
+            >
+              {{ getInitiales(getNomAffiche(conversationSelectionnee)) }}
+            </div>
+            <span class="presence-dot" *ngIf="conversationSelectionnee.estActive"></span>
+          </div>
+
+          <div class="chat-header-info">
+            <div class="chat-header-name-row">
+              <h4>{{ getNomAffiche(conversationSelectionnee) }}</h4>
+              <span class="role-chip role-owner" *ngIf="getRoleInterlocuteur(conversationSelectionnee) === 'Propriétaire'">Propriétaire</span>
+              <span class="role-chip role-student" *ngIf="getRoleInterlocuteur(conversationSelectionnee) === 'Étudiant'">Étudiant</span>
+            </div>
+            <p class="chat-header-sub" *ngIf="conversationSelectionnee.estActive">
+              <span class="dot-green"></span> En ligne · {{ getSousTitreConversation(conversationSelectionnee) }}
+            </p>
+            <p class="chat-header-sub pending-sub" *ngIf="!conversationSelectionnee.estActive">
+              ⏳ En attente de confirmation
+            </p>
+          </div>
+        </div>
+
+        <div class="chat-header-actions">
+          <button
+            type="button"
+            title="Appel vocal"
+            (click)="demarrerAppelVocal(conversationSelectionnee)"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.4 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.79a16 16 0 0 0 6.29 6.29l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+          </button>
+          <button
+            type="button"
+            title="Afficher / masquer les détails"
+            [class.active]="detailsOuvert"
+            (click)="toggleDetails()"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- BANDEAU CONTEXTE -->
+      <div class="context-banner" *ngIf="conversationSelectionnee.typeConversation !== 'MATCHING'">
+        <div class="context-banner-icon">🏠</div>
+        <div class="context-banner-text">
+          <strong>{{ conversationSelectionnee.titreAnnonce || 'Annonce Locavia' }}</strong>
+          <span *ngIf="conversationSelectionnee.estActive"> · Demande acceptée</span>
+          <span *ngIf="!conversationSelectionnee.estActive"> · En attente de confirmation</span>
+        </div>
+        <button
+          class="context-banner-btn"
+          type="button"
+          (click)="voirAnnonce(conversationSelectionnee)"
+        >
+          Voir l'annonce →
+        </button>
+      </div>
+
+      <div class="context-banner context-matching" *ngIf="conversationSelectionnee.typeConversation === 'MATCHING'">
+        <div class="context-banner-icon">✦</div>
+        <div class="context-banner-text">
+          <strong>Profil compatible</strong>
+          <span> · {{ conversationSelectionnee.scoreCompatibilite || 0 }}% de compatibilité</span>
+        </div>
+        <button class="context-banner-btn" type="button">Voir le profil →</button>
+      </div>
+
+      <!-- MESSAGES -->
+      <div class="messages-area" *ngIf="conversationSelectionnee.estActive; else convBloquee" #messagesContainer>
+
+        <div class="day-separator">
+          <span>Aujourd'hui</span>
+        </div>
+
+        <div
+          *ngFor="let msg of messages; trackBy: trackByMsgId"
+          class="msg-row"
+          [class.msg-sent]="msg.expediteurId === utilisateurConnecte?.id && !isSystemeCentre(msg)"
+          [class.msg-received]="msg.expediteurId !== utilisateurConnecte?.id && !isSystemeCentre(msg)"
+          [class.msg-system]="isSystemeCentre(msg)"
+        >
+          <!-- Avatar interlocuteur (messages reçus) -->
+          <div
+            class="msg-avatar"
+            *ngIf="msg.expediteurId !== utilisateurConnecte?.id && msg.typeMessage !== 'SYSTEME'"
+          >
+            {{ getInitiales(getNomAffiche(conversationSelectionnee)) }}
+          </div>
+
+          <div
+            class="msg-bubble"
+            class="msg-bubble"
+            [class.bubble-sent]="msg.expediteurId === utilisateurConnecte?.id && !isSystemeCentre(msg)"
+            [class.bubble-received]="msg.expediteurId !== utilisateurConnecte?.id && !isSystemeCentre(msg)"
+            [class.bubble-system]="isSystemeCentre(msg)"
+            [class.bubble-call]="estMessageAppel(msg)"
+            [class.bubble-image-only]="estImage(msg) && !msg.contenu"
+          >
+            <div class="call-message-card" *ngIf="estMessageAppel(msg)">
+              <div
+                class="call-message-icon"
+                [class.missed]="msg.contenu === 'APPEL_VOCAL_MANQUE'"
+              >
+                ☎
+              </div>
+
+              <div class="call-message-info">
+                <strong>{{ getTitreMessageAppel(msg) }}</strong>
+                <span>{{ msg.dateEnvoi | date:'HH:mm' }}</span>
+              </div>
+
+              <button
+                type="button"
+                class="call-message-btn"
+                *ngIf="msg.contenu === 'APPEL_VOCAL_MANQUE'"
+                (click)="demarrerAppelVocal(conversationSelectionnee)"
+              >
+                Rappeler
+              </button>
+            </div>
+
+            <p *ngIf="msg.contenu && !estMessageAppel(msg) && messageEnEdition?.id !== msg.id">
+              {{ msg.contenu }}
+            </p>
+            <img
+              *ngIf="estImage(msg)"
+              class="message-image"
+              [src]="msg.pieceJointeUrl"
+              [alt]="msg.pieceJointeNom || 'Image envoyée'"
+            />
+
+            <a
+              *ngIf="estFichier(msg)"
+              class="message-file"
+              [href]="msg.pieceJointeUrl"
+              target="_blank"
+              download
+            >
+              <span class="file-icon">📎</span>
+              <span class="file-name">{{ msg.pieceJointeNom || 'Fichier joint' }}</span>
+            </a>
+
+            <time>{{ msg.dateEnvoi | date:'HH:mm' }}</time>
+            <div class="message-edit-box" *ngIf="messageEnEdition?.id === msg.id">
+              <input
+                type="text"
+                [(ngModel)]="contenuEdition"
+                (keydown.enter)="enregistrerEdition()"
+              />
+
+              <button type="button" (click)="enregistrerEdition()">OK</button>
+              <button type="button" (click)="annulerEdition()">Annuler</button>
+            </div>
+
+            <ng-container *ngIf="messageEnEdition?.id !== msg.id">
+
+              <div class="message-reaction" *ngIf="msg.reactionEmoji" (click)="retirerReaction(msg)">
+                {{ msg.reactionEmoji }}
+              </div>
+
+              <div class="message-meta">
+                <time [title]="getDateMessageComplete(msg)">
+                  {{ msg.dateEnvoi | date:'HH:mm' }}
+                </time>
+
+                <span class="edited-label" *ngIf="msg.modifie">
+                  modifié
+                </span>
+              </div>
+
+              <div class="message-actions" *ngIf="!msg.supprime && !estMessageAppel(msg)">
+                <button type="button" title="Réagir" (click)="toggleReactions(msg, $event)">
+                  😊
+                </button>
+
+                <button
+                  type="button"
+                  title="Options"
+                  *ngIf="peutModifierMessage(msg) || peutSupprimerMessage(msg)"
+                  (click)="toggleMenuMessage(msg, $event)"
+                >
+                  ⋯
+                </button>
+              </div>
+
+              <div class="reaction-picker-small" *ngIf="reactionPickerMessageId === msg.id">
+                <button
+                  type="button"
+                  *ngFor="let emoji of reactionsRapides"
+                  (click)="reagirMessage(msg, emoji)"
+                >
+                  {{ emoji }}
+                </button>
+              </div>
+
+              <div class="message-menu" *ngIf="messageMenuOuvertId === msg.id">
+                <button type="button" *ngIf="peutModifierMessage(msg)" (click)="commencerEdition(msg)">
+                  Modifier
+                </button>
+
+                <button type="button" *ngIf="peutSupprimerMessage(msg)" class="danger" (click)="supprimerMessage(msg)">
+                  Supprimer
+                </button>
+              </div>
+
+            </ng-container>
+          </div>
+        </div>
+
+        <div class="messages-empty" *ngIf="messages.length === 0 && !chargementMessages">
+          <p>Aucun message pour le moment. Dites bonjour ! 👋</p>
+        </div>
+
+        <div class="messages-loading" *ngIf="chargementMessages">
+          <div class="loading-dots"><span></span><span></span><span></span></div>
+        </div>
+
+      </div>
+
+      <!-- CONV BLOQUÉE -->
+      <ng-template #convBloquee>
+        <div class="chat-locked">
+          <div class="locked-visual">
+            <div class="locked-ring"></div>
+            <span>⏳</span>
+          </div>
+          <h4>Conversation en attente</h4>
+          <p>Cette messagerie sera disponible dès que<br>le propriétaire confirmera votre demande.</p>
+          <span class="locked-badge">En attente de confirmation</span>
+        </div>
+      </ng-template>
+
+      <!-- INPUT -->
+      <!-- INPUT -->
+      <!-- INPUT -->
+      <div class="input-area-wrapper" *ngIf="conversationSelectionnee.estActive">
+
+        <!-- MESSAGE STYLE FACEBOOK SI CONVERSATION BLOQUÉE -->
+        <div class="blocked-chat-box" *ngIf="conversationBloquee()">
+          <div class="blocked-icon">🚫</div>
+
+          <div class="blocked-text">
+            <strong *ngIf="bloqueeParMoi()">Vous avez bloqué cette conversation.</strong>
+            <strong *ngIf="!bloqueeParMoi()">Cette conversation est bloquée.</strong>
+
+            <p *ngIf="bloqueeParMoi()">
+              Vous ne pouvez plus envoyer de messages à cette personne.
+            </p>
+
+            <p *ngIf="!bloqueeParMoi()">
+              Vous ne pouvez plus répondre dans cette conversation.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            class="unblock-inline-btn"
+            *ngIf="bloqueeParMoi()"
+            (click)="toggleBlocageConversation()"
+          >
+            Débloquer
+          </button>
+        </div>
+
+        <!-- INPUT NORMAL SEULEMENT SI NON BLOQUÉ -->
+        <ng-container *ngIf="!conversationBloquee()">
+
+          <!-- APERÇU IMAGE OU FICHIER AVANT ENVOI -->
+          <div class="selected-attachment" *ngIf="fichierSelectionne">
+            <div class="selected-image-preview" *ngIf="previewImage">
+              <img [src]="previewImage" alt="Image sélectionnée">
+            </div>
+
+            <div class="selected-file-preview" *ngIf="!previewImage">
+              <div class="selected-file-icon">📎</div>
+              <div>
+                <strong>{{ fichierSelectionne.name }}</strong>
+                <span>Fichier prêt à envoyer</span>
+              </div>
+            </div>
+
+            <button type="button" class="remove-attachment" (click)="retirerFichier()">×</button>
+          </div>
+
+          <div class="input-area">
+
+            <!-- INPUTS CACHÉS -->
+            <input
+              #imageInput
+              type="file"
+              hidden
+              accept="image/*"
+              (change)="onImageSelectionnee($event)"
+            />
+
+            <input
+              #fileInput
+              type="file"
+              hidden
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
+              (change)="onFichierSelectionne($event)"
+            />
+
+            <!-- BOUTON PIÈCE JOINTE -->
+            <div class="attachment-wrapper">
+              <button
+                class="input-icon-btn"
+                type="button"
+                title="Joindre"
+                (click)="toggleMenuPieceJointe()"
+              >
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+                </svg>
+              </button>
+
+              <!-- MENU IMAGE / FICHIER -->
+              <div class="attachment-menu" *ngIf="menuPieceJointeOuvert">
+                <button type="button" class="attachment-option" (click)="ouvrirSelectImage(imageInput)">
+            <span class="attachment-icon image-icon">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                <circle cx="9" cy="10" r="1.5"></circle>
+                <path d="M21 16l-5-5-4 4-2-2-5 5"></path>
+              </svg>
+            </span>
+
+                  <div class="attachment-text">
+                    <strong>Image</strong>
+                    <small>Photo depuis votre appareil</small>
+                  </div>
+                </button>
+
+                <button type="button" class="attachment-option" (click)="ouvrirSelectFichier(fileInput)">
+            <span class="attachment-icon file-icon">
+              <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path>
+                <path d="M14 2v6h6"></path>
+                <path d="M9 13h6"></path>
+                <path d="M9 17h6"></path>
+              </svg>
+            </span>
+
+                  <div class="attachment-text">
+                    <strong>Fichier</strong>
+                    <small>PDF, Word, Excel, ZIP...</small>
+                  </div>
+                </button>
+              </div>
+            </div>
+
+            <!-- CHAMP MESSAGE -->
+            <div class="input-field-wrap">
+        <textarea
+          [(ngModel)]="nouveauMessage"
+          placeholder="Écrivez un message..."
+          rows="1"
+          (keydown.enter)="$event.preventDefault(); envoyerMessage()"
+          (input)="autoResize($event)"
+        ></textarea>
+            </div>
+
+            <!-- BOUTON EMOJI -->
+            <button
+              class="input-icon-btn emoji-btn"
+              type="button"
+              title="Emoji"
+              (click)="toggleEmoji()"
+            >
+              😊
+            </button>
+
+            <!-- EMOJI PICKER -->
+            <div class="emoji-picker-wrapper" *ngIf="emojiOuvert">
+              <emoji-mart
+                title="Choisir un emoji"
+                emoji="point_up"
+                [showPreview]="false"
+                [isNative]="true"
+                [perLine]="8"
+                [i18n]="{
+            search: 'Rechercher',
+            categories: {
+              search: 'Résultats',
+              recent: 'Récents',
+              people: 'Smileys',
+              nature: 'Nature',
+              foods: 'Nourriture',
+              activity: 'Activités',
+              places: 'Voyages',
+              objects: 'Objets',
+              symbols: 'Symboles',
+              flags: 'Drapeaux'
+            }
+          }"
+                (emojiClick)="ajouterEmoji($event)"
+              ></emoji-mart>
+            </div>
+
+            <!-- BOUTON ENVOYER -->
+            <button
+              class="send-btn"
+              type="button"
+              (click)="envoyerMessage()"
+              [disabled]="!nouveauMessage.trim() && !fichierSelectionne"
+              [class.send-active]="nouveauMessage.trim() || fichierSelectionne"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="22" y1="2" x2="11" y2="13"/>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+
+        </ng-container>
+      </div>
+    </ng-container>
+  </section>
+
+  <!-- ═══════════════════════════════
+      PANNEAU DÉTAILS DROIT
+ ══════════════════════════════ -->
+  <aside class="details-panel" *ngIf="conversationSelectionnee && detailsOuvert">
+
+    <!-- PROFIL UTILISATEUR -->
+    <div class="details-profile">
+      <div class="details-avatar">
+        <img
+          *ngIf="getPhotoDetails(); else detailsInitiales"
+          [src]="getPhotoDetails()"
+          [alt]="getNomAffiche(conversationSelectionnee)"
+        />
+
+        <ng-template #detailsInitiales>
+          {{ getInitiales(getNomAffiche(conversationSelectionnee)) }}
+        </ng-template>
+      </div>
+
+      <h4>{{ getNomAffiche(conversationSelectionnee) }}</h4>
+
+      <div class="details-chips">
+      <span
+        class="role-chip role-owner"
+        *ngIf="getRoleInterlocuteur(conversationSelectionnee) === 'Propriétaire'"
+      >
+        Propriétaire
+      </span>
+
+        <span
+          class="role-chip role-student"
+          *ngIf="getRoleInterlocuteur(conversationSelectionnee) === 'Étudiant'"
+        >
+        Étudiant
+      </span>
+
+        <span class="status-chip active" *ngIf="!conversationBloquee()">
+        Active
+      </span>
+
+        <span class="status-chip blocked" *ngIf="conversationBloquee()">
+        Bloquée
+      </span>
+      </div>
+    </div>
+
+    <!-- LOGEMENT CONCERNÉ -->
+    <div class="side-section housing-section">
+      <h4 class="side-title">Logement concerné</h4>
+
+      <div class="housing-card refined-housing-card">
+        <div class="housing-image-wrap">
+          <ng-container *ngIf="getImageAnnonceDetails(); else noAnnonceImage">
+            <img
+              [src]="getImageAnnonceDetails()"
+              [alt]="conversationSelectionnee?.titreAnnonce || 'Photo annonce'"
+              class="housing-image"
+            />
+          </ng-container>
+
+          <ng-template #noAnnonceImage>
+            <div class="housing-image housing-image-placeholder">
+              🏠
+            </div>
+          </ng-template>
+        </div>
+
+        <div class="housing-content">
+          <strong class="housing-name">
+            {{ conversationSelectionnee?.titreAnnonce || 'Annonce sans titre' }}
+          </strong>
+
+          <p class="housing-subtitle">
+            Discussion liée à une demande de location
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="side-action-btn"
+        (click)="voirAnnonce(conversationSelectionnee)"
+      >
+        Voir l’annonce
+      </button>
+    </div>
+
+    <!-- FICHIERS ET CONTENUS MULTIMÉDIAS -->
+    <div class="details-section">
+      <div class="details-section-header">
+        <p class="section-label">Fichiers et contenus multimédias</p>
+      </div>
+
+      <!-- CONTENU MULTIMÉDIA -->
+      <button
+        type="button"
+        class="details-media-row"
+        [class.open]="detailsSectionOuverte === 'MEDIAS'"
+        (click)="toggleSectionDetails('MEDIAS')"
+      >
+      <span class="details-media-icon">
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+          <circle cx="9" cy="10" r="1.5"></circle>
+          <path d="M21 16l-5-5-4 4-2-2-5 5"></path>
+        </svg>
+      </span>
+
+        <div class="details-media-text">
+          <strong>Contenu multimédia</strong>
+          <small>{{ getMediasConversation().length }} élément(s)</small>
+        </div>
+
+        <span class="details-chevron">
+        {{ detailsSectionOuverte === 'MEDIAS' ? '⌃' : '⌄' }}
+      </span>
+      </button>
+
+      <!-- GALERIE IMAGES -->
+      <div
+        class="details-media-content"
+        *ngIf="detailsSectionOuverte === 'MEDIAS'"
+      >
+        <div
+          class="details-media-grid"
+          *ngIf="getMediasConversation().length > 0"
+        >
+          <button
+            type="button"
+            class="media-thumb"
+            *ngFor="let media of getMediasConversation()"
+            (click)="ouvrirApercuMedia(media)"
+          >
+            <img
+              [src]="media.pieceJointeUrl"
+              [alt]="media.pieceJointeNom || 'Image envoyée'"
+            />
+          </button>
+        </div>
+
+        <p
+          class="details-empty-small"
+          *ngIf="getMediasConversation().length === 0"
+        >
+          Aucun contenu multimédia dans cette conversation.
+        </p>
+      </div>
+
+      <!-- FICHIERS -->
+      <button
+        type="button"
+        class="details-media-row"
+        [class.open]="detailsSectionOuverte === 'FICHIERS'"
+        (click)="toggleSectionDetails('FICHIERS')"
+      >
+      <span class="details-media-icon">
+        <svg
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M14 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path>
+          <path d="M14 2v6h6"></path>
+          <path d="M9 13h6"></path>
+          <path d="M9 17h6"></path>
+        </svg>
+      </span>
+
+        <div class="details-media-text">
+          <strong>Fichiers</strong>
+          <small>{{ getFichiersConversation().length }} fichier(s)</small>
+        </div>
+
+        <span class="details-chevron">
+        {{ detailsSectionOuverte === 'FICHIERS' ? '⌃' : '⌄' }}
+      </span>
+      </button>
+
+      <!-- LISTE FICHIERS -->
+      <div
+        class="details-files-content"
+        *ngIf="detailsSectionOuverte === 'FICHIERS'"
+      >
+        <div
+          class="details-files-list"
+          *ngIf="getFichiersConversation().length > 0"
+        >
+          <button
+            type="button"
+            class="details-file-item"
+            *ngFor="let fichier of getFichiersConversation()"
+            (click)="ouvrirFichier(fichier)"
+          >
+            <span class="details-file-icon">📎</span>
+
+            <div class="details-file-text">
+              <strong>{{ fichier.pieceJointeNom || 'Fichier joint' }}</strong>
+              <small>{{ fichier.dateEnvoi | date:'dd/MM/yyyy HH:mm' }}</small>
+            </div>
+          </button>
+        </div>
+
+        <p
+          class="details-empty-small"
+          *ngIf="getFichiersConversation().length === 0"
+        >
+          Aucun fichier dans cette conversation.
+        </p>
+      </div>
+    </div>
+
+    <!-- ACTIONS RAPIDES -->
+    <div class="details-section">
+      <p class="section-label">Actions rapides</p>
+
+      <div class="quick-actions">
+        <button
+          type="button"
+          class="danger"
+          (click)="toggleBlocageConversation()"
+        >
+          <span *ngIf="!conversationBloquee()">🚫 Bloquer</span>
+          <span *ngIf="conversationBloquee()">✅ Débloquer</span>
+        </button>
+      </div>
+    </div>
+
+  </aside>
+
+
+  <!-- ═══════════════════════════════
+       APERÇU MEDIA STYLE FACEBOOK
+  ══════════════════════════════ -->
+  <div class="media-preview-overlay" *ngIf="mediaPreviewOuvert">
+    <div class="media-preview-header">
+      <strong>{{ mediaPreviewNom }}</strong>
+
+      <button
+        type="button"
+        title="Fermer"
+        (click)="fermerApercuMedia()"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="media-preview-body" (click)="fermerApercuMedia()">
+      <img
+        *ngIf="mediaPreviewUrl"
+        [src]="mediaPreviewUrl"
+        [alt]="mediaPreviewNom || 'Image'"
+        (click)="$event.stopPropagation()"
+      />
+    </div>
+  </div>
+  <!-- ═══════════════════════════════
+       FENÊTRE APPEL VOCAL
+  ═══════════════════════════════ -->
+
+  <!-- ═══════════════════════════════
+       APPEL ENTRANT
+  ══════════════════════════════ -->
+  <div class="call-overlay" *ngIf="appelEntrantOuvert">
+    <div class="incoming-call-card">
+      <div class="incoming-call-avatar">
+        {{ getInitiales(getNomAppelant()) }}
+      </div>
+
+      <p class="call-label">Appel vocal entrant</p>
+      <h3>{{ getNomAppelant() }}</h3>
+      <p class="call-subtitle">vous appelle sur Locavia</p>
+
+      <div class="call-actions">
+        <button type="button" class="decline-call" (click)="refuserAppel()">
+          ✕
+        </button>
+
+        <button type="button" class="accept-call" (click)="accepterAppel()">
+          📞
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       APPEL SORTANT
+  ══════════════════════════════ -->
+  <div class="call-overlay" *ngIf="appelSortantOuvert">
+    <div class="incoming-call-card">
+      <div class="incoming-call-avatar">
+        {{ getInitiales(getNomAffiche(conversationAppel)) }}
+      </div>
+
+      <p class="call-label">Appel vocal</p>
+      <h3>{{ getNomAffiche(conversationAppel) }}</h3>
+      <p class="call-subtitle">Appel en cours...</p>
+
+      <div class="call-ringing">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+      <div class="call-actions">
+        <button type="button" class="decline-call" (click)="terminerAppelVocal()">
+          ✕
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       FENÊTRE AUDIO JITSI
+  ══════════════════════════════ -->
+  <div class="voice-call-overlay" *ngIf="appelVocalOuvert">
+    <div class="voice-call-card">
+
+      <div class="voice-call-header">
+        <div class="voice-call-user">
+          <div class="voice-call-avatar">
+            <span>📞</span>
+          </div>
+
+          <div>
+            <h4>Appel vocal Locavia</h4>
+            <p>Conversation en cours</p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          class="voice-call-close"
+          (click)="terminerAppelVocal()"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="voice-call-body">
+        <iframe
+          *ngIf="appelVocalUrl"
+          [src]="appelVocalUrl"
+          allow="microphone; camera; fullscreen; display-capture"
+        ></iframe>
+      </div>
+
+    </div>
+  </div>
+
+</div>

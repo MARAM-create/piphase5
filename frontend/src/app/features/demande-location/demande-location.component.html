@@ -1,0 +1,537 @@
+<!-- demande-location.component.html -->
+
+<div class="page-wrapper">
+
+  <!-- ═══ ANNONCE CARD ═══ -->
+  <div class="annonce-card" *ngIf="annonce">
+    <div class="annonce-banner">
+      <img [src]="annonce.imageUrl || 'assets/appartement-default.jpg'" alt="Appartement" />
+
+      <div class="banner-overlay">
+        <span class="badge-dispo">Disponible</span>
+        <h2>{{ annonce.titre }}</h2>
+        <p>{{ annonce.adresse }}</p>
+      </div>
+    </div>
+
+    <div class="annonce-body">
+      <div class="annonce-info">
+        <h3>{{ annonce.titre }}</h3>
+
+        <div class="addr">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          {{ annonce.adresse }}
+        </div>
+
+        <div class="tags">
+          <span class="tag">{{ annonce.typeLocation }}</span>
+          <span class="tag">{{ annonce.quartier }}</span>
+          <span class="tag">{{ annonce.nombreChambres }} chambres</span>
+          <span class="tag">{{ annonce.surface }} m²</span>
+        </div>
+      </div>
+
+      <div class="annonce-price">
+        <div class="price">{{ annonce.prix }} DT<span>/mois</span></div>
+
+        <button type="button" class="voir-btn" (click)="voirAnnonce()">
+          Voir l'annonce
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEPPER ═══ -->
+  <div class="stepper">
+    <ng-container *ngFor="let step of steps; let i = index">
+      <div class="step">
+        <div
+          class="step-circle"
+          [class.done]="currentStep > i + 1"
+          [class.active]="currentStep === i + 1"
+          [class.pending]="currentStep < i + 1"
+        >
+          <svg
+            *ngIf="currentStep > i + 1"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            stroke-width="2.5"
+          >
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+
+          <span *ngIf="currentStep <= i + 1">{{ i + 1 }}</span>
+        </div>
+
+        <span class="step-label" [class.active]="currentStep === i + 1">
+          {{ step }}
+        </span>
+      </div>
+
+      <div
+        *ngIf="i < steps.length - 1"
+        class="step-line"
+        [class.done]="currentStep > i + 1"
+      ></div>
+    </ng-container>
+  </div>
+
+  <!-- ═══ FORM CARD ═══ -->
+  <div class="form-card">
+
+    <!-- ÉTAPE 1 — Informations personnelles -->
+    <div *ngIf="currentStep === 1">
+      <div class="section-title">
+        <span>Vos informations</span>
+
+        <button type="button" class="autofill-btn" (click)="autofill()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          Remplir automatiquement
+        </button>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Prénom</label>
+          <input
+            type="text"
+            placeholder="Ahmed"
+            [(ngModel)]="form.prenom"
+            [class.input-error]="erreurs['prenom']"
+          />
+          <div class="error-message" *ngIf="erreurs['prenom']">
+            {{ erreurs['prenom'] }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Nom</label>
+          <input
+            type="text"
+            placeholder="Ben Ali"
+            [(ngModel)]="form.nom"
+            [class.input-error]="erreurs['nom']"
+          />
+          <div class="error-message" *ngIf="erreurs['nom']">
+            {{ erreurs['nom'] }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Email</label>
+          <input
+            type="email"
+            placeholder="ahmed@gmail.com"
+            [(ngModel)]="form.email"
+            [class.input-error]="erreurs['email']"
+          />
+          <div class="error-message" *ngIf="erreurs['email']">
+            {{ erreurs['email'] }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Téléphone</label>
+          <input
+            type="tel"
+            placeholder="+216 55 123 456"
+            [(ngModel)]="form.telephone"
+            [class.input-error]="erreurs['telephone']"
+          />
+          <div class="error-message" *ngIf="erreurs['telephone']">
+            {{ erreurs['telephone'] }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Établissement / Université</label>
+        <input
+          type="text"
+          placeholder="Ex: ESPRIT — Génie Logiciel, 3ème année"
+          [(ngModel)]="form.ecole"
+          [class.input-error]="erreurs['ecole']"
+        />
+        <div class="error-message" *ngIf="erreurs['ecole']">
+          {{ erreurs['ecole'] }}
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <div></div>
+        <button type="button" class="btn-next" (click)="nextStep()">Suivant →</button>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 2 — Préférences de location -->
+    <div *ngIf="currentStep === 2">
+      <div class="section-title">Préférences de location</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Nombre de personnes</label>
+          <select
+            [(ngModel)]="form.nombrePersonnes"
+            [class.input-error]="erreurs['nombrePersonnes']"
+          >
+            <option value="">Sélectionner</option>
+            <option value="1">1 personne</option>
+            <option value="2">2 personnes</option>
+            <option value="3">3 personnes</option>
+            <option value="4">4 personnes et plus</option>
+          </select>
+          <div class="error-message" *ngIf="erreurs['nombrePersonnes']">
+            {{ erreurs['nombrePersonnes'] }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Date d'entrée souhaitée</label>
+          <input
+            type="date"
+            [(ngModel)]="form.dateEntree"
+            [min]="dateAujourdhui"
+            [class.input-error]="erreurs['dateEntree']"
+          />
+          <div class="error-message" *ngIf="erreurs['dateEntree']">
+            {{ erreurs['dateEntree'] }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Durée de location souhaitée</label>
+          <select
+            [(ngModel)]="form.dureeLocation"
+            [class.input-error]="erreurs['dureeLocation']"
+          >
+            <option value="">Sélectionner</option>
+            <option value="1_mois">1 mois</option>
+            <option value="3_mois">3 mois</option>
+            <option value="6_mois">6 mois</option>
+            <option value="1_an">1 an</option>
+            <option value="plus_1_an">Plus d'un an</option>
+          </select>
+          <div class="error-message" *ngIf="erreurs['dureeLocation']">
+            {{ erreurs['dureeLocation'] }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Budget maximum (DT/mois)</label>
+          <input
+            type="number"
+            placeholder="Ex: 600"
+            min="1"
+            [(ngModel)]="form.budgetMax"
+            [class.input-error]="erreurs['budgetMax']"
+          />
+          <div class="error-message" *ngIf="erreurs['budgetMax']">
+            {{ erreurs['budgetMax'] }}
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 14px;">
+        <label>Ville de résidence actuelle</label>
+        <input
+          type="text"
+          placeholder="Ex: Sfax, Sousse..."
+          [(ngModel)]="form.villeActuelle"
+          [class.input-error]="erreurs['villeActuelle']"
+        />
+        <div class="error-message" *ngIf="erreurs['villeActuelle']">
+          {{ erreurs['villeActuelle'] }}
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-title" style="margin-bottom: 10px;">
+        Critères principaux recherchés
+      </div>
+
+      <div class="pills-group" style="margin-bottom: 6px;">
+        <button
+          type="button"
+          *ngFor="let critere of criteres"
+          class="pill-btn"
+          [class.selected]="form.criteresPrincipaux.includes(critere.value)"
+          [class.pill-error]="erreurs['criteresPrincipaux']"
+          (click)="toggleCritere(critere.value)"
+        >
+          {{ critere.label }}
+        </button>
+      </div>
+
+      <div class="error-message" *ngIf="erreurs['criteresPrincipaux']">
+        {{ erreurs['criteresPrincipaux'] }}
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-title" style="margin-bottom: 10px;">
+        Ce logement correspond à votre besoin pour
+      </div>
+
+      <div class="pills-group" style="margin-bottom: 6px;">
+        <button
+          type="button"
+          *ngFor="let besoin of besoins"
+          class="pill-btn"
+          [class.selected]="form.besoinPrincipal === besoin.value"
+          [class.pill-error]="erreurs['besoinPrincipal']"
+          (click)="form.besoinPrincipal = besoin.value"
+        >
+          {{ besoin.label }}
+        </button>
+      </div>
+
+      <div class="error-message" *ngIf="erreurs['besoinPrincipal']">
+        {{ erreurs['besoinPrincipal'] }}
+      </div>
+
+      <div class="form-group" style="margin-bottom: 6px; margin-top: 14px;">
+        <label>Remarque ou besoin particulier lié au logement</label>
+        <textarea
+          rows="3"
+          placeholder="Ex: Je cherche un endroit calme pour réviser, proche des transports..."
+          [(ngModel)]="form.remarqueLogement"
+        ></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-prev" (click)="prevStep()">← Retour</button>
+        <button type="button" class="btn-next" (click)="nextStep()">Suivant →</button>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 3 — Mode de visite -->
+    <div *ngIf="currentStep === 3">
+      <div class="section-title">Choix du mode de visite</div>
+
+      <div class="visite-group">
+        <label class="visite-label">Type de visite souhaité</label>
+
+        <div class="pills-group">
+          <button
+            type="button"
+            *ngFor="let type of typesVisite"
+            class="pill-btn"
+            [class.selected]="form.typeVisite === type.value"
+            [class.pill-error]="erreurs['typeVisite']"
+            (click)="selectionnerTypeVisite(type.value)"
+          >
+            {{ type.label }}
+          </button>
+        </div>
+
+        <div class="error-message" *ngIf="erreurs['typeVisite']">
+          {{ erreurs['typeVisite'] }}
+        </div>
+      </div>
+
+      <div class="divider" *ngIf="form.typeVisite === 'EN_LIGNE'"></div>
+
+      <div class="visite-group" *ngIf="form.typeVisite === 'EN_LIGNE'">
+        <label class="visite-label">Format préféré</label>
+
+        <div class="pills-group">
+          <button
+            type="button"
+            *ngFor="let format of formatsVisite"
+            class="pill-btn"
+            [class.selected]="form.formatVisite === format.value"
+            [class.pill-error]="erreurs['formatVisite']"
+            (click)="form.formatVisite = format.value"
+          >
+            {{ format.label }}
+          </button>
+        </div>
+
+        <div class="error-message" *ngIf="erreurs['formatVisite']">
+          {{ erreurs['formatVisite'] }}
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="visite-group">
+        <label class="visite-label">Moment préféré pour la visite</label>
+
+        <div class="pills-group">
+          <button
+            type="button"
+            *ngFor="let moment of momentsVisite"
+            class="pill-btn"
+            [class.selected]="form.momentVisite === moment.value"
+            [class.pill-error]="erreurs['momentVisite']"
+            (click)="selectionnerMomentVisite(moment.value)"
+          >
+            {{ moment.label }}
+          </button>
+        </div>
+
+        <div class="error-message" *ngIf="erreurs['momentVisite']">
+          {{ erreurs['momentVisite'] }}
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-prev" (click)="prevStep()">← Retour</button>
+        <button type="button" class="btn-next" (click)="nextStep()">Suivant →</button>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 4 — Disponibilités -->
+    <div *ngIf="currentStep === 4">
+      <div class="section-title">Vos disponibilités</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date souhaitée pour la visite</label>
+          <input
+            type="date"
+            [(ngModel)]="form.visiteDate"
+            [min]="dateAujourdhui"
+            [class.input-error]="erreurs['visiteDate']"
+          />
+          <div class="error-message" *ngIf="erreurs['visiteDate']">
+            {{ erreurs['visiteDate'] }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Plage horaire préférée</label>
+          <select
+            [(ngModel)]="form.plageHoraire"
+            [class.input-error]="erreurs['plageHoraire']"
+          >
+            <option value="">Sélectionner</option>
+            <option value="matin">Matin (8h – 12h)</option>
+            <option value="apres_midi">Après-midi (13h – 17h)</option>
+            <option value="soir">Soirée (17h – 20h)</option>
+          </select>
+          <div class="error-message" *ngIf="erreurs['plageHoraire']">
+            {{ erreurs['plageHoraire'] }}
+          </div>
+        </div>
+      </div>
+
+      <div class="dispo-section">
+        <label class="visite-label">Jours disponibles</label>
+
+        <div class="days-row">
+          <button
+            type="button"
+            *ngFor="let jour of jours"
+            class="day-btn"
+            [class.selected]="form.joursDisponibles.includes(jour.value)"
+            [class.pill-error]="erreurs['joursDisponibles']"
+            (click)="toggleJour(jour.value)"
+          >
+            {{ jour.label }}
+          </button>
+        </div>
+
+        <div class="error-message" *ngIf="erreurs['joursDisponibles']">
+          {{ erreurs['joursDisponibles'] }}
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top: 14px;">
+        <label>Remarque complémentaire</label>
+        <textarea
+          rows="2"
+          placeholder="Toute précision utile sur vos disponibilités..."
+          [(ngModel)]="form.remarqueDispo"
+        ></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-prev" (click)="prevStep()">← Retour</button>
+        <button type="button" class="btn-next" (click)="nextStep()">Suivant →</button>
+      </div>
+    </div>
+
+    <!-- ÉTAPE 5 — Message final -->
+    <div *ngIf="currentStep === 5">
+      <div class="section-title">Message au propriétaire</div>
+
+      <div class="msg-section">
+        <textarea
+          rows="5"
+          placeholder="Présentez-vous brièvement, expliquez votre situation et pourquoi cet appartement vous convient..."
+          [(ngModel)]="form.message"
+          [class.input-error]="erreurs['message']"
+        ></textarea>
+
+        <div class="error-message" *ngIf="erreurs['message']">
+          {{ erreurs['message'] }}
+        </div>
+
+        <p class="msg-hint">
+          Votre demande sera transmise au propriétaire avec votre profil complet.
+        </p>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" class="btn-prev" (click)="prevStep()">← Retour</button>
+
+        <button
+          type="button"
+          class="btn-submit"
+          (click)="soumettreDemande()"
+          [disabled]="loading"
+        >
+          <ng-container *ngIf="!loading">Envoyer la demande ✓</ng-container>
+          <ng-container *ngIf="loading">Envoi en cours...</ng-container>
+        </button>
+      </div>
+    </div>
+
+    <!-- SUCCÈS -->
+    <div *ngIf="currentStep === 6" class="success-box">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+
+      <h3>Demande envoyée avec succès !</h3>
+
+      <p>
+        Le propriétaire recevra votre demande et vous contactera dans les meilleurs délais.<br />
+        Vous pouvez suivre l'état dans "Mes demandes".
+      </p>
+
+      <button
+        *ngIf="demandeId"
+        type="button"
+        class="pdf-btn"
+        (click)="telechargerPdf()"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+        </svg>
+        Télécharger le PDF
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,403 @@
+/* ─────────────────────────────────────────
+   NAVBAR
+───────────────────────────────────────── */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: 64px;
+  padding: 0 5%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(168, 200, 180, 0.3);
+  transition: box-shadow 0.3s;
+  overflow: visible !important;
+}
+
+.navbar.is-scrolled {
+  box-shadow: 0 2px 24px rgba(28, 61, 42, 0.09);
+}
+
+/* BRAND */
+.brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  overflow: visible;
+}
+
+.brand-logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0px; /* espace entre le logo et le texte */
+  overflow: visible;
+}
+
+/* image du symbole */
+.brand-logo-icon {
+  width: 100px;
+  height: 54px;
+  object-fit: contain;
+  display: block;
+  background: transparent;
+}
+
+/* image du texte */
+.brand-logo-text {
+  width: 110px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  background: transparent;
+}
+
+.brand-name {
+  font-family: 'Libre Baskerville', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--forest);
+  letter-spacing: 0.2px;
+}
+
+.brand-name span {
+  color: var(--gold);
+}
+
+/* NAV LINKS */
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow: visible;
+}
+
+.nav-link {
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--stone);
+  text-decoration: none;
+  border: none;
+  background: none;
+  font-family: 'Jost', sans-serif;
+  cursor: pointer;
+  letter-spacing: 0.15px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.nav-link:hover {
+  color: var(--forest);
+  background: var(--mint);
+}
+
+/* ACTIONS */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: visible;
+}
+
+.nav-actions-logged-in {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  overflow: visible;
+}
+
+.btn-outline-sm {
+  padding: 7px 16px;
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  color: var(--forest);
+  border: 1.5px solid var(--sage);
+  background: transparent;
+  cursor: pointer;
+  font-family: 'Jost', sans-serif;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-outline-sm:hover {
+  background: var(--mint);
+  border-color: var(--green-lt);
+}
+
+.btn-nav-fill {
+  padding: 7px 18px;
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #fff;
+  border: none;
+  background: linear-gradient(135deg, var(--forest), var(--green));
+  cursor: pointer;
+  font-family: 'Jost', sans-serif;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-nav-fill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(28, 61, 42, 0.3);
+}
+
+/* Logged In Actions */
+.btn-mes-demandes {
+  padding: 7px 15px;
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--forest);
+  border: 1.5px solid var(--sage);
+  background: transparent;
+  cursor: pointer;
+  font-family: 'Jost', sans-serif;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-mes-demandes:hover {
+  background: var(--mint);
+  border-color: var(--green-lt);
+}
+
+.btn-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--stone);
+  transition: all 0.2s;
+  position: relative;
+}
+
+.btn-icon:hover {
+  background: var(--mint);
+  color: var(--forest);
+}
+
+/* NOTIFICATIONS */
+.notification-btn {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: var(--forest);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+/* USER */
+.user-menu-container {
+  position: relative;
+}
+
+.mon-espace-container {
+  position: relative;
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--forest);
+  color: var(--gold-lt);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Jost', sans-serif;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.user-avatar:hover {
+  opacity: 0.85;
+}
+
+/* DROPDOWN */
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  min-width: 180px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(28, 61, 42, 0.3);
+  border: 2px solid var(--forest);
+  z-index: 10000;
+  padding: 8px 0;
+  display: block;
+  visibility: visible;
+  opacity: 1;
+}
+
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-down {
+  animation: fadeDown 0.2s ease;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 15px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--forest);
+  text-decoration: none;
+  font-family: 'Jost', sans-serif;
+  transition: background 0.2s;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.dropdown-item:hover {
+  background: var(--mint);
+}
+
+.dropdown-item.logout {
+  color: #c0392b;
+}
+
+.dropdown-item.logout:hover {
+  background: #fef2f2;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--cream-dk);
+  margin: 4px 0;
+}
+
+/* Mon Espace dropdown positioning */
+.mon-espace-menu {
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+}
+
+/* =========================
+   BOUTON MESSENGER NAVBAR
+========================= */
+.messenger-navbar-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.messenger-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--stone);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: none;
+  transition: all 0.2s ease;
+}
+
+.messenger-btn:hover {
+  background: var(--mint);
+  color: var(--forest);
+  box-shadow: none;
+}
+
+.messenger-btn:active {
+  transform: scale(0.96);
+}
+
+.messenger-btn.open {
+  background: var(--mint);
+  color: var(--forest);
+  box-shadow: none;
+}
+
+.messenger-svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  transition: transform 0.2s ease;
+}
+
+.messenger-btn:hover .messenger-svg {
+  transform: scale(1.05);
+}
+
+.message-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 9px;
+  height: 9px;
+  background: #ef4444;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+}
+
+.navbar-message-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 18px;
+  text-align: center;
+  border: 2px solid #ffffff;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.28);
+}

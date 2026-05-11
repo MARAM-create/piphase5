@@ -1,0 +1,133 @@
+<div class="detail-page">
+  <div *ngIf="chargement" class="state-box">Chargement...</div>
+  <div *ngIf="erreur" class="state-box error">{{ erreur }}</div>
+
+  <ng-container *ngIf="meuble">
+    <section class="detail-hero">
+      <div class="hero-overlay"></div>
+
+      <div class="detail-shell">
+        <div class="detail-intro">
+          <span class="eyebrow">Détail du meuble</span>
+          <h1>{{ meuble.titre }}</h1>
+          <p>Découvrez toutes les informations sur ce meuble et son vendeur.</p>
+        </div>
+
+        <div class="detail-card">
+          <div class="detail-grid">
+
+            <!-- Galerie -->
+            <div class="gallery-panel">
+              <div class="main-photo-wrapper" *ngIf="getPhotoActive() as photo; else noPhoto">
+                <img [src]="photo" [alt]="meuble.titre" class="photo-principale" />
+              </div>
+
+              <ng-template #noPhoto>
+                <div class="no-photo-large">📷 Aucune photo disponible</div>
+              </ng-template>
+
+              <div class="thumb-strip" *ngIf="meuble.photos && meuble.photos.length > 1">
+                <button
+                  type="button"
+                  *ngFor="let p of meuble.photos; let i = index"
+                  class="thumb-btn"
+                  [class.active]="photoActive === i"
+                  (click)="photoActive = i">
+                  <img [src]="getPhotoUrl(p)" [alt]="meuble.titre + ' ' + i" class="thumbnail" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Infos -->
+            <div class="info-panel">
+              <div class="top-price-row">
+                <div class="price">{{ meuble.prix }} DT</div>
+                <span class="badge-statut" [ngClass]="meuble.statut.toLowerCase()">
+                  {{ getStatutLabel(meuble.statut) }}
+                </span>
+              </div>
+
+              <div class="chips-row">
+                <span class="chip chip-category">🪑 {{ meuble.categorie }}</span>
+                <span class="chip chip-etat">✔ {{ getEtatLabel(meuble.etat) }}</span>
+                <span class="chip chip-location">📍 {{ meuble.ville }}</span>
+              </div>
+
+              <div class="title-block">
+                <h2>{{ meuble.titre }}</h2>
+                <p class="description">{{ meuble.description }}</p>
+              </div>
+
+              <div class="details-box">
+                <h3>Informations</h3>
+
+                <div class="detail-line">
+                  <span class="detail-icon">🪑</span>
+                  <div class="detail-text">
+                    <span class="detail-label">Catégorie</span>
+                    <span class="detail-value">{{ meuble.categorie }}</span>
+                  </div>
+                </div>
+
+                <div class="detail-line">
+                  <span class="detail-icon">✔</span>
+                  <div class="detail-text">
+                    <span class="detail-label">État</span>
+                    <span class="detail-value">{{ getEtatLabel(meuble.etat) }}</span>
+                  </div>
+                </div>
+
+                <div class="detail-line">
+                  <span class="detail-icon">📍</span>
+                  <div class="detail-text">
+                    <span class="detail-label">Localisation</span>
+                    <span class="detail-value">{{ meuble.ville }}</span>
+                  </div>
+                </div>
+
+                <div class="detail-line">
+                  <span class="detail-icon">📝</span>
+                  <div class="detail-text">
+                    <span class="detail-label">Description</span>
+                    <span class="detail-value">{{ meuble.description }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="seller-box">
+                <h3>Vendeur</h3>
+                <p>{{ meuble.vendeurPrenom }} {{ meuble.vendeurNom }}</p>
+                <p>📧 {{ meuble.vendeurEmail }}</p>
+                <p *ngIf="meuble.vendeurTelephone">📞 {{ meuble.vendeurTelephone }}</p>
+              </div>
+
+              <div class="actions">
+                <a routerLink="/meubles" class="btn-retour">← Retour</a>
+
+                <ng-container *ngIf="!estMonMeuble()">
+                  <button
+                    *ngIf="meuble.statut === 'DISPONIBLE'"
+                    (click)="acheter()"
+                    class="btn-acheter">
+                    🛒 Acheter ce meuble
+                  </button>
+
+                  <span *ngIf="meuble.statut !== 'DISPONIBLE'" class="badge-indispo">
+                    Non disponible
+                  </span>
+                </ng-container>
+
+                <ng-container *ngIf="estMonMeuble()">
+                  <a [routerLink]="['/meubles/modifier', meuble.id]" class="btn-modifier">
+                    ✏️ Modifier
+                  </a>
+                </ng-container>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+  </ng-container>
+</div>

@@ -1,0 +1,4 @@
+flask==3.0.3
+flask-cors==5.0.0
+textblob==0.18.0
+gunicorn==22.0.0

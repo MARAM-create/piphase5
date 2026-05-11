@@ -1,0 +1,163 @@
+<div class="mes-demandes-page">
+  <section class="hero-section">
+    <div class="hero-overlay"></div>
+
+    <div class="hero-shell">
+      <div class="hero-intro">
+        <span class="eyebrow">Gestion de mes demandes</span>
+        <h1>Mes demandes</h1>
+        <p>Consultez, modifiez ou supprimez vos demandes de service tant qu’elles sont en attente.</p>
+      </div>
+
+      <div class="table-card">
+        <div class="toolbar">
+          <a routerLink="/services" class="btn-retour">← Retour aux services</a>
+        </div>
+
+        <div *ngIf="chargement" class="state-box">Chargement...</div>
+        <div *ngIf="erreur" class="state-box error">{{ erreur }}</div>
+
+        <div *ngIf="!chargement && demandes.length === 0" class="state-box empty-box">
+          <div class="vide-icon">📋</div>
+          <h3>Aucune demande pour le moment</h3>
+          <p>Trouvez un prestataire et envoyez votre première demande.</p>
+          <a routerLink="/services" class="btn-explorer">Explorer les services</a>
+        </div>
+
+        <div class="table-wrapper" *ngIf="!chargement && !erreur && demandes.length > 0">
+          <table class="table">
+            <thead>
+            <tr>
+              <th class="col-prestataire">Prestataire</th>
+              <th class="col-date">Date & heure</th>
+              <th class="col-lieu">Adresse</th>
+              <th class="col-statut">Statut</th>
+              <th class="col-actions">Actions</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr *ngFor="let d of demandes">
+              <td class="title-cell">
+                <div class="title-wrap">
+                  <div class="thumb-wrap service-thumb">
+                    <div class="photo-placeholder">
+                      {{ d.prestatairePrenom.charAt(0) }}{{ d.prestataireNom.charAt(0) }}
+                    </div>
+                  </div>
+
+                  <div class="title-meta">
+                    <strong>{{ d.prestatairePrenom }} {{ d.prestataireNom }}</strong>
+
+                    <div class="meta-badges">
+                      <span class="mini-badge">🛠️ {{ d.prestataireSpecialite }}</span>
+                      <span class="mini-badge">📝 {{ d.probleme }}</span>
+                    </div>
+                  </div>
+                </div>
+              </td>
+
+              <td class="date-cell">
+                <div class="date-wrap">
+                  <strong>📅 {{ d.dateService }}</strong>
+                  <span>🕒 {{ d.heureService }}</span>
+                </div>
+              </td>
+
+              <td class="lieu-cell">
+                <div class="lieu-wrap">
+                  <strong>📍 {{ d.ville }}</strong>
+                  <span>{{ d.adresse }}</span>
+                </div>
+              </td>
+
+              <td class="statut-cell">
+                  <span class="badge-statut" [ngClass]="d.statut.toLowerCase()">
+                    {{ statutLabel(d.statut) }}
+                  </span>
+              </td>
+
+              <td class="actions-cell">
+                <div class="actions-wrap" *ngIf="d.statut === 'EN_ATTENTE'; else noAction">
+                  <button (click)="ouvrirModification(d)" class="btn-edit">
+                    ✏️ Modifier
+                  </button>
+                </div>
+
+                <ng-template #noAction>
+                  <div class="actions-wrap">
+                    <span class="action-disabled">Aucune action</span>
+                  </div>
+                </ng-template>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal-overlay" *ngIf="modalOuvert" (click)="fermerModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <h2>✏️ Modifier la demande</h2>
+      <button class="btn-fermer" (click)="fermerModal()">✕</button>
+    </div>
+
+    <div class="modal-prestataire" *ngIf="demandeAModifier">
+      <strong>{{ demandeAModifier.prestatairePrenom }} {{ demandeAModifier.prestataireNom }}</strong>
+      <span>{{ demandeAModifier.prestataireSpecialite }}</span>
+    </div>
+
+    <div *ngIf="succesEnvoi" class="alerte-succes">✅ Demande modifiée avec succès !</div>
+    <div *ngIf="erreurEnvoi" class="alerte-erreur">{{ erreurEnvoi }}</div>
+
+    <form [formGroup]="form" (ngSubmit)="modifier()">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Date *</label>
+          <input formControlName="dateService" type="date" [min]="today">
+          <small *ngIf="f['dateService'].touched && f['dateService'].errors?.['required']" class="erreur-champ">
+            Date requise
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>Heure *</label>
+          <input formControlName="heureService" type="time">
+          <small *ngIf="f['heureService'].touched && f['heureService'].errors?.['required']" class="erreur-champ">
+            Heure requise
+          </small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Adresse *</label>
+        <input formControlName="adresse" type="text" placeholder="Votre adresse">
+      </div>
+
+      <div class="form-group">
+        <label>Ville *</label>
+        <input formControlName="ville" type="text" placeholder="Votre ville">
+      </div>
+
+      <div class="form-group">
+        <label>Description du problème *</label>
+        <textarea formControlName="probleme" rows="4" placeholder="Décrivez votre problème..."></textarea>
+        <small *ngIf="f['probleme'].touched && f['probleme'].errors?.['required']" class="erreur-champ">
+          Description requise
+        </small>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" (click)="fermerModal()" class="btn-annuler">Annuler</button>
+        <button type="submit" [disabled]="envoi" class="btn-envoyer">
+          {{ envoi ? 'Modification...' : '💾 Sauvegarder' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+src/app/core/models/etudiant.component.ts(9,35): error TS2307: Cannot find module '../../../environments/environment' or its corresponding type declarations.
+src/app/core/models/prestataire.component.ts(9,35): error TS2307: Cannot find module '../../../environments/environment' or its corresponding type declarations.
+src/app/core/models/proprietaire.component.ts(9,35): error TS2307: Cannot find module '../../../environments/environment' or its corresponding type declarations.
+src/app/core/services/annonce.service.ts(5,29): error TS2307: Cannot find module '../../../environments/environment' or its corresponding type declarations.
+src/app/core/services/auth.service.ts(9,29): error TS2307: Cannot find module '../../../environments/environment' or its corresponding type declarations.
+src/app/core/services/face-verification.service.ts(6,29): error TS2307: Cannot find module '../../../environments/environment' or its corresponding type declarations.
+src/app/core/services/google-auth.service.ts(4,35): error TS2307: Cannot find module '../../../environments/environment' or its corresponding type declarations.
+src/app/core/services/matching.service.ts(4,29): error TS2307: Cannot find module '../../../environments/environment' or its corresponding type declarations.
+src/app/core/services/recaptcha.service.ts(5,35): error TS2307: Cannot find module '../../../environments/environment' or its corresponding type declarations.
+src/app/features/pages/auth/verifier-email/verifier-email.component.ts(7,53): error TS2307: Cannot find module '../../../../../environments/environment' or its corresponding type declarations.
+src/app/features/pages/auth/verifier-otp/verifier-otp.component.ts(9,40): error TS2307: Cannot find module '../../../../../environments/environment' or its corresponding type declarations.
+src/app/features/pages/tableaux-de-bord/admin/admin.component.ts(13,35): error TS2307: Cannot find module '../../../../../environments/environment' or its corresponding type declarations.
+src/app/features/pages/tableaux-de-bord/etudiant/etudiant.component.ts(15,35): error TS2307: Cannot find module '../../../../../environments/environment' or its corresponding type declarations.
+src/app/features/pages/tableaux-de-bord/prestataire/prestataire.component.ts(12,35): error TS2307: Cannot find module '../../../../../environments/environment' or its corresponding type declarations.
+src/app/features/pages/tableaux-de-bord/proprietaire/proprietaire.component.ts(14,35): error TS2307: Cannot find module '../../../../../environments/environment' or its corresponding type declarations.
+src/app/features/reclamation/dashboard-reclamation/dashboard-reclamation.component.ts(178,12): error TS2307: Cannot find module 'chart.js/auto' or its corresponding type declarations.

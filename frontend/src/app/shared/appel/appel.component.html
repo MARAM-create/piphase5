@@ -1,0 +1,86 @@
+<div class="appel-container">
+
+  <!-- ── Appel entrant ───────────────────────────────────────── -->
+  <div class="appel-overlay"
+       *ngIf="statut === 'APPEL_ENTRANT' && appelEntrant">
+    <div class="appel-entrant-card">
+      <div class="appel-avatar">{{ appelEntrant.fromNom[0] }}</div>
+      <h3>{{ appelEntrant.fromNom }}</h3>
+      <p>Appel entrant...</p>
+      <div class="appel-entrant-actions">
+        <button (click)="refuser()"  class="btn-refuser-appel">📵 Refuser</button>
+        <button (click)="accepter()" class="btn-accepter-appel">📞 Accepter</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Appel sortant ───────────────────────────────────────── -->
+  <div class="appel-overlay" *ngIf="statut === 'APPEL_SORTANT'">
+    <div class="appel-sortant-card">
+      <div class="pulse-ring"></div>
+      <p>📞 Appel en cours...</p>
+      <p class="appel-vers">{{ appelSortantVers }}</p>
+      <button (click)="terminer()" class="btn-terminer-appel">📵 Annuler</button>
+    </div>
+  </div>
+
+  <!-- ── Plein écran ─────────────────────────────────────────── -->
+  <div class="appel-en-cours"
+       [hidden]="statut !== 'EN_COURS' || minimise">
+
+    <div class="appel-toolbar">
+      <span class="minuterie-top">🟢 {{ minuterie }}</span>
+      <button class="btn-minimiser" (click)="minimiser()">⬇ Minimiser</button>
+    </div>
+
+    <div class="videos-container">
+      <video #videoRemote autoplay playsinline class="video-remote"></video>
+      <video #videoLocal  autoplay playsinline muted class="video-local"></video>
+    </div>
+
+    <div class="appel-controles">
+      <button (click)="couperMicro()"
+              class="btn-controle"
+              [class.actif]="microCoupe"
+              [title]="microCoupe ? 'Activer micro' : 'Couper micro'">
+        {{ microCoupe ? '🔇' : '🎤' }}
+      </button>
+
+      <button (click)="terminer()"
+              class="btn-terminer-appel-cours"
+              title="Raccrocher">
+        📞
+      </button>
+
+      <button (click)="couperVideo()"
+              class="btn-controle"
+              [class.actif]="videoCoupee"
+              [title]="videoCoupee ? 'Activer caméra' : 'Couper caméra'">
+        {{ videoCoupee ? '📵' : '📷' }}
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ── Widget flottant ────────────────────────────────────── -->
+  <div class="appel-flottant"
+       [hidden]="statut !== 'EN_COURS' || !minimise"
+       (click)="maximiser()">
+
+    <video #videoLocalFlottant autoplay playsinline muted
+           class="video-flottante"></video>
+
+    <div class="flottant-info">
+      <span class="flottant-minuterie">🟢 {{ minuterie }}</span>
+      <span class="flottant-label">Tap pour revenir à l'appel</span>
+    </div>
+
+    <button class="btn-raccrocher-flottant"
+            (click)="$event.stopPropagation(); terminer()"
+            title="Raccrocher">
+      📞
+    </button>
+
+  </div>
+
+</div>

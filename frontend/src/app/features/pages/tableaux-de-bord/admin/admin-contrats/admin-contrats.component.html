@@ -1,0 +1,172 @@
+<!-- ═══════════════════════════════════════════════════════════
+     ADMIN — GESTION DES CONTRATS
+     (Sidebar provided by AdminShellComponent)
+═══════════════════════════════════════════════════════════ -->
+<div class="ac-page">
+
+  <!-- Top header -->
+  <header class="ac-header">
+    <div class="ac-header-left">
+      <div>
+        <h1 class="ac-page-title">📄 Gestion des Contrats</h1>
+        <p class="ac-page-sub">{{ contratsFiltres.length }} contrat{{ contratsFiltres.length !== 1 ? 's' : '' }} · Toute la plateforme</p>
+      </div>
+    </div>
+    <button class="ac-refresh-btn" (click)="chargerContrats()" title="Actualiser">
+      🔄 Actualiser
+    </button>
+  </header>
+
+  <!-- Main content -->
+  <main class="ac-main">
+
+    <!-- Filters bar -->
+    <div class="ac-filters">
+      <div class="ac-search-wrap">
+        <svg class="ac-search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input
+          id="ac-search"
+          class="ac-search"
+          type="text"
+          placeholder="Rechercher par locataire, propriétaire, bien…"
+          [(ngModel)]="recherche"
+          (input)="appliquerFiltres()"
+        />
+        <button *ngIf="recherche" class="ac-search-clear" (click)="recherche=''; appliquerFiltres()">✕</button>
+      </div>
+
+      <select class="ac-select" [(ngModel)]="filtreStatut" (ngModelChange)="appliquerFiltres()">
+        <option *ngFor="let s of statutOptions" [value]="s.value">{{ s.label }}</option>
+      </select>
+
+      <span class="ac-filter-count">{{ contratsFiltres.length }} résultat(s)</span>
+    </div>
+
+    <!-- Loading -->
+    <div class="ac-state" *ngIf="chargement">
+      <div class="ac-spinner"></div>
+      <p>Chargement des contrats de la plateforme…</p>
+    </div>
+
+    <!-- Error -->
+    <div class="ac-error" *ngIf="erreur && !chargement">⚠️ {{ erreur }}</div>
+
+    <!-- Empty -->
+    <div class="ac-state" *ngIf="!chargement && !erreur && contratsFiltres.length === 0">
+      <div style="font-size:48px;margin-bottom:12px">📄</div>
+      <h3>Aucun contrat trouvé</h3>
+      <p *ngIf="recherche">Aucun résultat pour « {{ recherche }} ».</p>
+      <p *ngIf="!recherche">Aucun contrat dans le système.</p>
+    </div>
+
+    <!-- Contracts table -->
+    <div class="ac-table-wrap" *ngIf="!chargement && !erreur && contratsFiltres.length > 0">
+
+      <!-- Table header -->
+      <div class="ac-table-hd">
+        <div>#ID</div>
+        <div>Locataire</div>
+        <div>Propriétaire</div>
+        <div>Bien loué</div>
+        <div>Dates</div>
+        <div>Statut</div>
+        <div>Signé</div>
+        <div>Actions</div>
+      </div>
+
+      <!-- Table rows -->
+      <div class="ac-table-row" *ngFor="let c of contratsFiltres; trackBy: trackById">
+
+        <!-- ID -->
+        <div class="ac-tc ac-tc--id">#{{ c.id }}</div>
+
+        <!-- Locataire -->
+        <div class="ac-tc">
+          <div class="ac-user-cell">
+            <div class="ac-avatar ac-avatar--blue">{{ getInitiales(c.locataireFullName) }}</div>
+            <span class="ac-user-name">{{ c.locataireFullName }}</span>
+          </div>
+        </div>
+
+        <!-- Propriétaire -->
+        <div class="ac-tc">
+          <div class="ac-user-cell">
+            <div class="ac-avatar ac-avatar--green">{{ getInitiales(c.bailleurFullName) }}</div>
+            <span class="ac-user-name">{{ c.bailleurFullName }}</span>
+          </div>
+        </div>
+
+        <!-- Bien -->
+        <div class="ac-tc ac-tc--prop">{{ c.annonceTitre || '—' }}</div>
+
+        <!-- Dates -->
+        <div class="ac-tc ac-tc--dates">
+          <span>{{ formatDate(c.dateDebut) }}</span>
+          <span class="ac-date-sep">→</span>
+          <span>{{ formatDate(c.dateFin) }}</span>
+        </div>
+
+        <!-- Statut -->
+        <div class="ac-tc">
+          <span [class]="getStatutClass(c.statutContrat)">{{ getStatutLabel(c.statutContrat) }}</span>
+        </div>
+
+        <!-- Signé -->
+        <div class="ac-tc">
+          <span class="ac-badge"
+            [class.ac-badge--success]="!!c.imageScanneUrl"
+            [class.ac-badge--warning]="!c.imageScanneUrl">
+            {{ getSignedLabel(c.imageScanneUrl) }}
+          </span>
+        </div>
+
+        <!-- Actions -->
+        <div class="ac-tc ac-tc--actions">
+          <a *ngIf="c.imageScanneUrl"
+            [href]="getScanUrl(c.imageScanneUrl)"
+            target="_blank"
+            class="ac-btn ac-btn--view"
+            title="Voir le contrat signé (backend)">
+            👁 Voir
+          </a>
+          <button
+            id="btn-del-contrat-{{ c.id }}"
+            class="ac-btn ac-btn--delete"
+            (click)="ouvrirConfirmation(c.id, $event)"
+            title="Supprimer ce contrat">
+            🗑 Supprimer
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="ac-modal-bd" *ngIf="afficherConfirmation" (click)="annulerSuppression()">
+  <div class="ac-modal" (click)="$event.stopPropagation()" role="dialog">
+    <div class="ac-modal-ico">⚠️</div>
+    <h3>Supprimer ce contrat ?</h3>
+    <p>
+      Le contrat <strong>#{{ idASupprimer }}</strong> sera supprimé définitivement de la plateforme.
+      Cette action est <strong>irréversible</strong>.
+    </p>
+    <div class="ac-modal-btns">
+      <button class="ac-btn ac-btn--cancel" (click)="annulerSuppression()" [disabled]="suppressionEnCours">
+        Annuler
+      </button>
+      <button
+        id="btn-confirm-del"
+        class="ac-btn ac-btn--confirm-delete"
+        (click)="confirmerSuppression()"
+        [disabled]="suppressionEnCours">
+        <span *ngIf="!suppressionEnCours">🗑 Confirmer la suppression</span>
+        <span *ngIf="suppressionEnCours">Suppression…</span>
+      </button>
+    </div>
+  </div>
+</div>
